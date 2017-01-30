@@ -15,7 +15,6 @@ from ply import lex, yacc
 from .lexer import *  # noqa
 from .exc import FbsParserError, FbsGrammerError
 from thriftpy._compat import urlopen, urlparse
-from ..fbs import gen_init, TType, TPayload, TException
 
 
 def p_error(p):
@@ -26,26 +25,16 @@ def p_error(p):
 
 
 def p_start(p):
-    '''start : header definition'''
+    '''start : include_list body'''
 
 
-def p_header(p):
-    '''header : header_unit_ header
-              |'''
+def p_include_list(p):
+    '''include_list : include_list include_one
+                    | include_one
+                    |'''
 
-
-def p_header_unit_(p):
-    '''header_unit_ : header_unit ';'
-                    | header_unit'''
-
-
-def p_header_unit(p):
-    '''header_unit : include
-                   | namespace'''
-
-
-def p_include(p):
-    '''include : INCLUDE LITERAL'''
+def p_include_one(p):
+    '''include_one : INCLUDE LITERAL ';' '''
     fbs = fbs_stack[-1]
     if fbs.__fbs_file__ is None:
         raise FbsParserError('Unexcepted include statement while loading'
@@ -62,129 +51,60 @@ def p_include(p):
     raise FbsParserError(('Couldn\'t include fbs %s in any '
                              'directories provided') % p[2])
 
+def p_body(p):
+    '''body : namespace
+            | typedef
+            | enum
+            | root
+            | file_extension
+            | file_identifier
+            | attribute
+            | object
+            |'''
 
 def p_namespace(p):
-    '''namespace : NAMESPACE namespace_scope IDENTIFIER'''
+    '''namespace : NAMESPACE IDENTIFIER ';' '''
     # namespace is useless in thriftpy
     # if p[2] == 'py' or p[2] == '*':
     #     setattr(fbs_stack[-1], '__name__', p[3])
 
+def p_root(p):
+    '''root : ROOT_TYPE IDENTIFIER ';' '''
 
-def p_namespace_scope(p):
-    '''namespace_scope : '*'
-                       | IDENTIFIER'''
-    p[0] = p[1]
+def p_file_extension(p):
+    '''file_extension : FILE_EXTENSION LITERAL ';' '''
 
+def p_file_identifier(p):
+    '''file_identifier : FILE_IDENTIFIER LITERAL ';' '''
+
+def p_metadata(p):
+    '''metadata : '(' metadata_seq ')'
+                |'''
+
+def p_metadata_seq(p):
+    '''metadata_seq : IDENTIFIER
+                    | IDENTIFIER ',' metadata_seq'''
+
+def p_attribute(p):
+    '''attribute : ATTRIBUTE LITERAL ';' '''
+
+def p_object(p):
+    '''object : '{' field_seq '}' '''
 
 def p_sep(p):
     '''sep : ','
            | ';'
     '''
 
-
-def p_definition(p):
-    '''definition : definition definition_unit_
-                  |'''
-
-
-def p_definition_unit_(p):
-    '''definition_unit_ : definition_unit ';'
-                        | definition_unit'''
-
-
-def p_definition_unit(p):
-    '''definition_unit : const
-                       | ttype
-    '''
-
-
-def p_const(p):
-    '''const : CONST field_type IDENTIFIER '=' const_value
-             | CONST field_type IDENTIFIER '=' const_value sep'''
-
-    try:
-        val = _cast(p[2])(p[5])
-    except AssertionError:
-        raise FbsParserError('Type error for constant %s at line %d' %
-                                (p[3], p.lineno(3)))
-    setattr(fbs_stack[-1], p[3], val)
-    _add_fbs_meta('consts', val)
-
-
-def p_const_value(p):
-    '''const_value : INTCONSTANT
-                   | DUBCONSTANT
-                   | LITERAL
-                   | BOOLCONSTANT
-                   | const_list
-                   | const_map
-                   | const_ref'''
-    p[0] = p[1]
-
-
-def p_const_list(p):
-    '''const_list : '[' const_list_seq ']' '''
-    p[0] = p[2]
-
-
-def p_const_list_seq(p):
-    '''const_list_seq : const_value sep const_list_seq
-                      | const_value const_list_seq
-                      |'''
-    _parse_seq(p)
-
-
-def p_const_map(p):
-    '''const_map : '{' const_map_seq '}' '''
-    p[0] = dict(p[2])
-
-
-def p_const_map_seq(p):
-    '''const_map_seq : const_map_item sep const_map_seq
-                     | const_map_item const_map_seq
-                     |'''
-    _parse_seq(p)
-
-
-def p_const_map_item(p):
-    '''const_map_item : const_value ':' const_value '''
-    p[0] = [p[1], p[3]]
-
-
-def p_const_ref(p):
-    '''const_ref : IDENTIFIER'''
-    child = fbs_stack[-1]
-    for name in p[1].split('.'):
-        father = child
-        child = getattr(child, name, None)
-        if child is None:
-            raise FbsParserError('Cann\'t find name %r at line %d'
-                                    % (p[1], p.lineno(1)))
-
-    if _get_ttype(child) is None or _get_ttype(father) == TType.I32:
-        # child is a constant or enum value
-        p[0] = child
-    else:
-        raise FbsParserError('No enum value or constant found '
-                                'named %r' % p[1])
-
-
-def p_ttype(p):
-    '''ttype : typedef
-             | enum
-             | struct
-             | union
-             | exception
-             | service'''
-
-
 def p_typedef(p):
-    '''typedef : TYPEDEF field_type IDENTIFIER type_annotations'''
-    setattr(fbs_stack[-1], p[3], p[2])
-
+    '''typedef : table
+       typedef : struct '''
+    if (p[1]):
+        setattr(fbs_stack[-1], p[1][0], p[1][1])
 
 def p_enum(p):  # noqa
-    '''enum : ENUM IDENTIFIER '{' enum_seq '}' type_annotations'''
+    '''enum : ENUM IDENTIFIER metadata '{' enum_seq '}'
+       enum : union'''
     val = _make_enum(p[2], p[4])
     setattr(fbs_stack[-1], p[2], val)
     _add_fbs_meta('enums', val)
@@ -198,8 +118,8 @@ def p_enum_seq(p):
 
 
 def p_enum_item(p):
-    '''enum_item : IDENTIFIER '=' INTCONSTANT type_annotations
-                 | IDENTIFIER type_annotations
+    '''enum_item : IDENTIFIER '=' INTCONSTANT
+                 | IDENTIFIER
                  |'''
     if len(p) == 5:
         p[0] = [p[1], p[3]]
@@ -208,116 +128,22 @@ def p_enum_item(p):
 
 
 def p_struct(p):
-    '''struct : seen_struct '{' field_seq '}' type_annotations'''
-    val = _fill_in_struct(p[1], p[3])
+    '''struct : STRUCT IDENTIFIER metadata '{' field_seq '}' '''
+    #val = _fill_in_struct(p[1], p[3])
+    val = [p[1], p[2]]
     _add_fbs_meta('structs', val)
 
-
-def p_seen_struct(p):
-    '''seen_struct : STRUCT IDENTIFIER '''
-    val = _make_empty_struct(p[2])
-    setattr(fbs_stack[-1], p[2], val)
-    p[0] = val
-
+def p_table(p):
+    '''table : TABLE IDENTIFIER metadata '{' field_seq '}' ';' '''
+    #val = _fill_in_struct(p[1], p[3])
+    val = [p[1], p[2]]
+    _add_fbs_meta('tables', val)
 
 def p_union(p):
-    '''union : seen_union '{' field_seq '}' '''
-    val = _fill_in_struct(p[1], p[3])
+    '''union : UNION IDENTIFIER metadata '{' field_seq '}' ';' '''
+    #val = _fill_in_struct(p[1], p[3])
+    val = [p[1], p[2]]
     _add_fbs_meta('unions', val)
-
-
-def p_seen_union(p):
-    '''seen_union : UNION IDENTIFIER '''
-    val = _make_empty_struct(p[2])
-    setattr(fbs_stack[-1], p[2], val)
-    p[0] = val
-
-
-def p_exception(p):
-    '''exception : EXCEPTION IDENTIFIER '{' field_seq '}' type_annotations '''
-    val = _make_struct(p[2], p[4], base_cls=TException)
-    setattr(fbs_stack[-1], p[2], val)
-    _add_fbs_meta('exceptions', val)
-
-
-def p_simple_service(p):
-    '''simple_service : SERVICE IDENTIFIER '{' function_seq '}'
-                | SERVICE IDENTIFIER EXTENDS IDENTIFIER '{' function_seq '}'
-    '''
-    fbs = fbs_stack[-1]
-
-    if len(p) == 8:
-        extends = fbs
-        for name in p[4].split('.'):
-            extends = getattr(extends, name, None)
-            if extends is None:
-                raise FbsParserError('Can\'t find service %r for '
-                                        'service %r to extend' %
-                                        (p[4], p[2]))
-
-        if not hasattr(extends, 'fbs_services'):
-            raise FbsParserError('Can\'t extends %r, not a service'
-                                    % p[4])
-
-    else:
-        extends = None
-
-    val = _make_service(p[2], p[len(p) - 2], extends)
-    setattr(fbs, p[2], val)
-    _add_fbs_meta('services', val)
-
-
-def p_service(p):
-    '''service : simple_service type_annotations'''
-    p[0] = p[1]
-
-
-def p_simple_function(p):
-    '''simple_function : ONEWAY function_type IDENTIFIER '(' field_seq ')'
-    | ONEWAY function_type IDENTIFIER '(' field_seq ')' throws
-    | function_type IDENTIFIER '(' field_seq ')' throws
-    | function_type IDENTIFIER '(' field_seq ')' '''
-
-    if p[1] == 'oneway':
-        oneway = True
-        base = 1
-    else:
-        oneway = False
-        base = 0
-
-    if p[len(p) - 1] == ')':
-        throws = []
-    else:
-        throws = p[len(p) - 1]
-
-    p[0] = [oneway, p[base + 1], p[base + 2], p[base + 4], throws]
-
-
-def p_function(p):
-    '''function : simple_function type_annotations'''
-    p[0] = p[1]
-
-
-def p_function_seq(p):
-    '''function_seq : function sep function_seq
-                    | function function_seq
-                    |'''
-    _parse_seq(p)
-
-
-def p_throws(p):
-    '''throws : THROWS '(' field_seq ')' '''
-    p[0] = p[3]
-
-
-def p_function_type(p):
-    '''function_type : field_type
-                     | VOID'''
-    if p[1] == 'void':
-        p[0] = TType.VOID
-    else:
-        p[0] = p[1]
-
 
 def p_field_seq(p):
     '''field_seq : field sep field_seq
@@ -326,155 +152,31 @@ def p_field_seq(p):
     _parse_seq(p)
 
 
-def p_simple_field(p):
-    '''simple_field : field_id field_req field_type IDENTIFIER
-             | field_id field_req field_type IDENTIFIER '=' const_value
-             '''
-
-    if len(p) == 7:
-        try:
-            val = _cast(p[3])(p[6])
-        except AssertionError:
-            raise FbsParserError(
-                'Type error for field %s '
-                'at line %d' % (p[4], p.lineno(4)))
-    else:
-        val = None
-
-    p[0] = [p[1], p[2], p[3], p[4], val]
-
-
 def p_field(p):
-    '''field : simple_field type_annotations'''
+    '''field : IDENTIFIER ':' simple_base_type metadata ';'
+             | IDENTIFIER ':' simple_base_type '=' scalar metadata ';' '''
     p[0] = p[1]
-
-
-def p_field_id(p):
-    '''field_id : INTCONSTANT ':' '''
-    p[0] = p[1]
-
-
-def p_field_req(p):
-    '''field_req : REQUIRED
-                 | OPTIONAL
-                 |'''
-    if len(p) == 2:
-        p[0] = p[1] == 'required'
-    elif len(p) == 1:
-        p[0] = False  # default: required=False
-
-
-def p_field_type(p):
-    '''field_type : ref_type
-                  | definition_type'''
-    p[0] = p[1]
-
-
-def p_ref_type(p):
-    '''ref_type : IDENTIFIER'''
-    ref_type = fbs_stack[-1]
-
-    for name in p[1].split('.'):
-        ref_type = getattr(ref_type, name, None)
-        if ref_type is None:
-            raise FbsParserError('No type found: %r, at line %d' %
-                                    (p[1], p.lineno(1)))
-
-    if hasattr(ref_type, '_ttype'):
-        p[0] = getattr(ref_type, '_ttype'), ref_type
-    else:
-        p[0] = ref_type
 
 
 def p_simple_base_type(p):  # noqa
     '''simple_base_type : BOOL
                         | BYTE
-                        | I16
-                        | I32
-                        | I64
+                        | UBYTE
+                        | SHORT
+                        | USHORT
+                        | INT
+                        | UINT
+                        | FLOAT
+                        | LONG
+                        | ULONG
                         | DOUBLE
-                        | STRING
-                        | BINARY'''
-    if p[1] == 'bool':
-        p[0] = TType.BOOL
-    if p[1] == 'byte':
-        p[0] = TType.BYTE
-    if p[1] == 'i16':
-        p[0] = TType.I16
-    if p[1] == 'i32':
-        p[0] = TType.I32
-    if p[1] == 'i64':
-        p[0] = TType.I64
-    if p[1] == 'double':
-        p[0] = TType.DOUBLE
-    if p[1] == 'string':
-        p[0] = TType.STRING
-    if p[1] == 'binary':
-        p[0] = TType.BINARY
+                        | STRING'''
 
-
-def p_base_type(p):
-    '''base_type : simple_base_type type_annotations'''
-    p[0] = p[1]
-
-
-def p_simple_container_type(p):
-    '''simple_container_type : map_type
-                             | list_type
-                             | set_type'''
-    p[0] = p[1]
-
-
-def p_container_type(p):
-    '''container_type : simple_container_type type_annotations'''
-    p[0] = p[1]
-
-
-def p_map_type(p):
-    '''map_type : MAP '<' field_type ',' field_type '>' '''
-    p[0] = TType.MAP, (p[3], p[5])
-
-
-def p_list_type(p):
-    '''list_type : LIST '<' field_type '>' '''
-    p[0] = TType.LIST, p[3]
-
-
-def p_set_type(p):
-    '''set_type : SET '<' field_type '>' '''
-    p[0] = TType.SET, p[3]
-
-
-def p_definition_type(p):
-    '''definition_type : base_type
-                       | container_type'''
-    p[0] = p[1]
-
-
-def p_type_annotations(p):
-    '''type_annotations : '(' type_annotation_seq ')'
-                        |'''
-    if len(p) == 4:
-        p[0] = p[2]
-    else:
-        p[0] = None
-
-
-def p_type_annotation_seq(p):
-    '''type_annotation_seq : type_annotation sep type_annotation_seq
-                           | type_annotation type_annotation_seq
-                           |'''
-    _parse_seq(p)
-
-
-def p_type_annotation(p):
-    '''type_annotation : IDENTIFIER '=' LITERAL
-                       | IDENTIFIER '''
-    if len(p) == 4:
-        p[0] = p[1], p[3]
-    else:
-        p[0] = p[1], None  # Without Value
-
+def p_scalar(p):
+    '''scalar : LITERAL
+              | BOOLCONSTANT
+              | DUBCONSTANT
+              | INTCONSTANT'''
 
 fbs_stack = []
 include_dirs_ = ['.']
@@ -800,83 +502,3 @@ def _make_enum(name, kvs):
     setattr(cls, '_NAMES_TO_VALUES', _names_to_values)
     return cls
 
-
-def _make_empty_struct(name, ttype=TType.STRUCT, base_cls=TPayload):
-    attrs = {'__module__': fbs_stack[-1].__name__, '_ttype': ttype}
-    return type(name, (base_cls, ), attrs)
-
-
-def _fill_in_struct(cls, fields, _gen_init=True):
-    fbs_spec = {}
-    default_spec = []
-    _tspec = {}
-
-    for field in fields:
-        if field[0] in fbs_spec or field[3] in _tspec:
-            raise FbsGrammerError(('\'%d:%s\' field identifier/name has '
-                                      'already been used') % (field[0],
-                                                              field[3]))
-        ttype = field[2]
-        fbs_spec[field[0]] = _ttype_spec(ttype, field[3], field[1])
-        default_spec.append((field[3], field[4]))
-        _tspec[field[3]] = field[1], ttype
-    setattr(cls, 'fbs_spec', fbs_spec)
-    setattr(cls, 'default_spec', default_spec)
-    setattr(cls, '_tspec', _tspec)
-    if _gen_init:
-        gen_init(cls, fbs_spec, default_spec)
-    return cls
-
-
-def _make_struct(name, fields, ttype=TType.STRUCT, base_cls=TPayload,
-                 _gen_init=True):
-    cls = _make_empty_struct(name, ttype=ttype, base_cls=base_cls)
-    return _fill_in_struct(cls, fields, _gen_init=_gen_init)
-
-
-def _make_service(name, funcs, extends):
-    if extends is None:
-        extends = object
-
-    attrs = {'__module__': fbs_stack[-1].__name__}
-    cls = type(name, (extends, ), attrs)
-    fbs_services = []
-
-    for func in funcs:
-        func_name = func[2]
-        # args payload cls
-        args_name = '%s_args' % func_name
-        args_fields = func[3]
-        args_cls = _make_struct(args_name, args_fields)
-        setattr(cls, args_name, args_cls)
-        # result payload cls
-        result_name = '%s_result' % func_name
-        result_type = func[1]
-        result_throws = func[4]
-        result_oneway = func[0]
-        result_cls = _make_struct(result_name, result_throws,
-                                  _gen_init=False)
-        setattr(result_cls, 'oneway', result_oneway)
-        if result_type != TType.VOID:
-            result_cls.fbs_spec[0] = _ttype_spec(result_type, 'success')
-            result_cls.default_spec.insert(0, ('success', None))
-        gen_init(result_cls, result_cls.fbs_spec, result_cls.default_spec)
-        setattr(cls, result_name, result_cls)
-        fbs_services.append(func_name)
-    if extends is not None and hasattr(extends, 'fbs_services'):
-        fbs_services.extend(extends.fbs_services)
-    setattr(cls, 'fbs_services', fbs_services)
-    return cls
-
-
-def _ttype_spec(ttype, name, required=False):
-    if isinstance(ttype, int):
-        return ttype, name, required
-    else:
-        return ttype[0], name, ttype[1], required
-
-
-def _get_ttype(inst, default_ttype=None):
-    if hasattr(inst, '__dict__') and '_ttype' in inst.__dict__:
-        return inst.__dict__['_ttype']
-    return default_ttype

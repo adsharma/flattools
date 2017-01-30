@@ -33,10 +33,9 @@ keywords = (
     'long',
     'ulong',
     'double',
+    'string',
     'file_extension',
     'file_identifier',
-    'true',
-    'false',
 )
 
 

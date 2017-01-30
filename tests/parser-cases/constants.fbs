@@ -1,0 +1,8 @@
+table foo {
+ a:bool = true;
+ b:bool = false;
+ c:byte = -10;
+ d:ubyte = 10;
+ e:int = -10000000;
+ f:uint = 10000000;
+};
