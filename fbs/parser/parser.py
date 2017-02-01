@@ -25,12 +25,17 @@ def p_error(p):
 
 
 def p_start(p):
-    '''start : include_list body'''
+    '''start : include_seq body_seq'''
 
 
-def p_include_list(p):
-    '''include_list : include_list include_one
+def p_include_seq(p):
+    '''include_seq : include_seq include_one
                     | include_one
+                    |'''
+
+def p_body_seq(p):
+    '''body_seq : body_seq body
+                    | body
                     |'''
 
 def p_include_one(p):
@@ -70,31 +75,34 @@ def p_namespace(p):
 
 def p_root(p):
     '''root : ROOT_TYPE IDENTIFIER ';' '''
+    setattr(fbs_stack[-1], 'root', p[2])
 
 def p_file_extension(p):
     '''file_extension : FILE_EXTENSION LITERAL ';' '''
+    setattr(fbs_stack[-1], 'file_extension', p[2])
 
 def p_file_identifier(p):
     '''file_identifier : FILE_IDENTIFIER LITERAL ';' '''
+    setattr(fbs_stack[-1], 'file_identifier', p[2])
 
 def p_metadata(p):
     '''metadata : '(' metadata_seq ')'
                 |'''
 
 def p_metadata_seq(p):
-    '''metadata_seq : IDENTIFIER
-                    | IDENTIFIER ',' metadata_seq'''
+    '''metadata_seq : metadata_item ',' metadata_seq
+                    | metadata_item
+                    |'''
+
+def p_metadata_item(p):
+    '''metadata_item : IDENTIFIER
+                     | IDENTIFIER ':' scalar'''
 
 def p_attribute(p):
     '''attribute : ATTRIBUTE LITERAL ';' '''
 
 def p_object(p):
     '''object : '{' field_seq '}' '''
-
-def p_sep(p):
-    '''sep : ','
-           | ';'
-    '''
 
 def p_typedef(p):
     '''typedef : table
@@ -104,15 +112,22 @@ def p_typedef(p):
 
 def p_enum(p):  # noqa
     '''enum : ENUM IDENTIFIER metadata '{' enum_seq '}'
+       enum : ENUM IDENTIFIER ':' simple_base_type metadata '{' enum_seq '}'
        enum : union'''
-    val = _make_enum(p[2], p[4])
-    setattr(fbs_stack[-1], p[2], val)
-    _add_fbs_meta('enums', val)
+    if len(p) == 8:
+        val = _make_enum(p[2], p[7])
+    elif len(p) == 6:
+        val = _make_enum(p[2], p[5])
+    else:
+        val = p[1]
+    if (len(p) > 2):
+        setattr(fbs_stack[-1], p[2], val)
+        _add_fbs_meta('enums', val)
 
 
 def p_enum_seq(p):
-    '''enum_seq : enum_item sep enum_seq
-                | enum_item enum_seq
+    '''enum_seq : enum_item ',' enum_seq
+                | enum_item
                 |'''
     _parse_seq(p)
 
@@ -130,33 +145,36 @@ def p_enum_item(p):
 def p_struct(p):
     '''struct : STRUCT IDENTIFIER metadata '{' field_seq '}' '''
     #val = _fill_in_struct(p[1], p[3])
-    val = [p[1], p[2]]
+    val = [p[2], p[3], p[5]]
     _add_fbs_meta('structs', val)
 
 def p_table(p):
-    '''table : TABLE IDENTIFIER metadata '{' field_seq '}' ';' '''
+    '''table : TABLE IDENTIFIER metadata '{' field_seq '}' '''
     #val = _fill_in_struct(p[1], p[3])
-    val = [p[1], p[2]]
+    val = [p[2], p[3], p[5]]
     _add_fbs_meta('tables', val)
 
 def p_union(p):
-    '''union : UNION IDENTIFIER metadata '{' field_seq '}' ';' '''
+    '''union : UNION IDENTIFIER metadata '{' enum_seq '}' '''
     #val = _fill_in_struct(p[1], p[3])
     val = [p[1], p[2]]
     _add_fbs_meta('unions', val)
 
 def p_field_seq(p):
-    '''field_seq : field sep field_seq
-                 | field field_seq
+    '''field_seq : field_seq field
                  |'''
     _parse_seq(p)
 
 
 def p_field(p):
-    '''field : IDENTIFIER ':' simple_base_type metadata ';'
-             | IDENTIFIER ':' simple_base_type '=' scalar metadata ';' '''
+    '''field : IDENTIFIER ':' type metadata ';'
+             | IDENTIFIER ':' type '=' scalar metadata ';' '''
     p[0] = p[1]
 
+def p_type(p):
+    '''type : simple_base_type
+            | '[' type ']'
+            | IDENTIFIER'''
 
 def p_simple_base_type(p):  # noqa
     '''simple_base_type : BOOL
@@ -176,7 +194,8 @@ def p_scalar(p):
     '''scalar : LITERAL
               | BOOLCONSTANT
               | DUBCONSTANT
-              | INTCONSTANT'''
+              | INTCONSTANT
+              | IDENTIFIER'''  # This violates grammar?
 
 fbs_stack = []
 include_dirs_ = ['.']
@@ -330,10 +349,8 @@ def _add_fbs_meta(key, val):
 
 
 def _parse_seq(p):
-    if len(p) == 4:
-        p[0] = [p[1]] + p[3]
-    elif len(p) == 3:
-        p[0] = [p[1]] + p[2]
+    if len(p) == 3:
+        p[0] = p[1] + [p[2]]
     elif len(p) == 1:
         p[0] = []
 
@@ -480,7 +497,7 @@ def _cast_struct(t):   # struct/exception/union
 
 
 def _make_enum(name, kvs):
-    attrs = {'__module__': fbs_stack[-1].__name__, '_ttype': TType.I32}
+    attrs = {'__module__': fbs_stack[-1].__name__}
     cls = type(name, (object, ), attrs)
 
     _values_to_names = {}
@@ -501,4 +518,3 @@ def _make_enum(name, kvs):
     setattr(cls, '_VALUES_TO_NAMES', _values_to_names)
     setattr(cls, '_NAMES_TO_VALUES', _names_to_values)
     return cls
-

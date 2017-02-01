@@ -5,4 +5,4 @@ table foo {
  d:ubyte = 10;
  e:int = -10000000;
  f:uint = 10000000;
-};
+}
