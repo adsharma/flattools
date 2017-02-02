@@ -20,3 +20,6 @@ def test_monsters():
     assert fbs.root == 'Monster'
     assert fbs.file_extension == 'mon'
     assert fbs.file_identifier == 'MONS'
+
+def test_thrift2fbs():
+    fbs = load('parser-cases/thrift2fbs.fbs')

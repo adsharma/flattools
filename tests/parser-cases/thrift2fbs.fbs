@@ -1,0 +1,13 @@
+table Person {
+   name : STRING ;
+   address : STRING ;
+   age : SHORT ;
+}
+
+table Email {
+   subject : STRING ;
+   content : STRING ;
+   sender : Person ;
+   recver : Person ;
+}
+
