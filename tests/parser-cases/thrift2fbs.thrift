@@ -10,3 +10,10 @@ struct Email {
     3: Person sender,
     4: required Person recver,
 }
+
+enum Operation {
+  ADD = 1,
+  SUBTRACT = 2,
+  MULTIPLY = 3,
+  DIVIDE = 4
+}

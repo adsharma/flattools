@@ -19,7 +19,8 @@ thrift2_fbs_typemap = {
 
 def fbstype(ttype):
     try:
-        return FBSType._VALUES_TO_NAMES[thrift2_fbs_typemap[ttype[0]]]
+        name = FBSType._VALUES_TO_NAMES[thrift2_fbs_typemap[ttype[0]]]
+        return name.lower()
     except:
         # structs retain their name
         if (ttype[0] == TType.STRUCT):
@@ -41,7 +42,11 @@ def generate_fbs(tree):
         print '}'
         print
     for e in meta['enums']:
-        print e
+        print 'enum', e.__name__, ':', fbstype([e._ttype]), '{'
+        for field, value in e._NAMES_TO_VALUES.items():
+            print "  %s = %s," % (field, value)
+        print '}'
+        print
 
 if __name__ == '__main__':
     tree = load(sys.argv[1])
