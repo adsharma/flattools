@@ -15,7 +15,8 @@ from ply import lex, yacc
 from .lexer import *  # noqa
 from .exc import FbsParserError, FbsGrammerError
 from thriftpy._compat import urlopen, urlparse
-
+from fbs.fbs import FBSType, FBSPayload
+from thriftpy.thrift import gen_init
 
 def p_error(p):
     if p is None:
@@ -127,7 +128,7 @@ def p_enum(p):  # noqa
 
 def p_enum_seq(p):
     '''enum_seq : enum_item ',' enum_seq
-                | enum_item
+                | enum_item enum_seq
                 |'''
     _parse_seq(p)
 
@@ -138,30 +139,34 @@ def p_enum_item(p):
                  |'''
     if len(p) == 5:
         p[0] = [p[1], p[3]]
-    elif len(p) == 3:
+    elif len(p) == 2:
         p[0] = [p[1], None]
 
 
 def p_struct(p):
     '''struct : STRUCT IDENTIFIER metadata '{' field_seq '}' '''
-    #val = _fill_in_struct(p[1], p[3])
-    val = [p[2], p[3], p[5]]
+    val = _make_empty_struct(p[1])
+    setattr(fbs_stack[-1], p[1], val)
+    val = _fill_in_struct(val, p[5])
     _add_fbs_meta('structs', val)
 
 def p_table(p):
     '''table : TABLE IDENTIFIER metadata '{' field_seq '}' '''
-    #val = _fill_in_struct(p[1], p[3])
-    val = [p[2], p[3], p[5]]
+    val = _make_empty_struct(p[1])
+    setattr(fbs_stack[-1], p[1], val)
+    val = _fill_in_struct(val, p[5])
     _add_fbs_meta('tables', val)
 
 def p_union(p):
     '''union : UNION IDENTIFIER metadata '{' enum_seq '}' '''
-    #val = _fill_in_struct(p[1], p[3])
-    val = [p[1], p[2]]
+    val = _make_empty_struct(p[1])
+    setattr(fbs_stack[-1], p[1], val)
+    # Needs new code.
+    #val = _fill_in_struct(val, p[5])
     _add_fbs_meta('unions', val)
 
 def p_field_seq(p):
-    '''field_seq : field_seq field
+    '''field_seq : field field_seq
                  |'''
     _parse_seq(p)
 
@@ -169,12 +174,29 @@ def p_field_seq(p):
 def p_field(p):
     '''field : IDENTIFIER ':' type metadata ';'
              | IDENTIFIER ':' type '=' scalar metadata ';' '''
-    p[0] = p[1]
+    if len(p) == 7:
+        try:
+            val = _cast(p[3])(p[5])
+        except AssertionError:
+            raise FbsParserError(
+                'Type error for field %s '
+                'at line %d' % (p[1], p.lineno(4)))
+    else:
+        val = None
+
+    # field_id, required, type, name, value
+    # required is hard coded to False for now
+    p[0] = [None, False, p[3], p[1], val]
 
 def p_type(p):
     '''type : simple_base_type
             | '[' type ']'
             | IDENTIFIER'''
+    if len(p) == 4:
+        # XXX: Save vector=true somewhere
+        p[0] = p[2]
+    else:
+        p[0] = p[1]
 
 def p_simple_base_type(p):  # noqa
     '''simple_base_type : BOOL
@@ -189,6 +211,22 @@ def p_simple_base_type(p):  # noqa
                         | ULONG
                         | DOUBLE
                         | STRING'''
+    if p[1].upper() == 'BOOL':
+        p[0] = FBSType.BOOL
+    elif p[1].upper() == 'BYTE':
+        p[0] = FBSType.BYTE
+    elif p[1].upper() == 'SHORT':
+        p[0] = FBSType.SHORT
+    elif p[1].upper() == 'INT':
+        p[0] = FBSType.INT
+    elif p[1].upper() == 'FLOAT':
+        p[0] = FBSType.FLOAT
+    elif p[1].upper() == 'DOUBLE':
+        p[0] = FBSType.DOUBLE
+    elif p[1].upper() == 'STRING':
+        p[0] = FBSType.STRING
+    else:
+        p[0] = FBSType.STRUCT
 
 def p_scalar(p):
     '''scalar : LITERAL
@@ -266,12 +304,12 @@ def parse(path, module_name=None, include_dirs=None, include_dir=None,
     elif url_scheme in ('http', 'https'):
         data = urlopen(path).read()
     else:
-        raise FbsParserError('FbsPy does not support generating module '
+        raise FbsParserError('thriftpy does not support generating module '
                                 'with path in protocol \'{}\''.format(
                                     url_scheme))
 
     if module_name is not None and not module_name.endswith('_fbs'):
-        raise FbsParserError('FbsPy can only generate module with '
+        raise FbsParserError('thriftpy can only generate module with '
                                 '\'_fbs\' suffix')
 
     if module_name is None:
@@ -307,7 +345,7 @@ def parse_fp(source, module_name, lexer=None, parser=None, enable_cache=True):
                          cached by `module_name`, this is enabled by default.
     """
     if not module_name.endswith('_fbs'):
-        raise FbsParserError('FbsPy can only generate module with '
+        raise FbsParserError('thriftpy can only generate module with '
                                 '\'_fbs\' suffix')
 
     if enable_cache and module_name in fbs_cache:
@@ -349,38 +387,32 @@ def _add_fbs_meta(key, val):
 
 
 def _parse_seq(p):
-    if len(p) == 3:
-        p[0] = p[1] + [p[2]]
+    if len(p) == 4:
+        p[0] = [p[1]] + p[3]
+    elif len(p) == 3:
+        p[0] = [p[1]] + p[2]
     elif len(p) == 1:
         p[0] = []
 
 
 def _cast(t):  # noqa
-    if t == TType.BOOL:
+    if t == FBSType.BOOL:
         return _cast_bool
-    if t == TType.BYTE:
+    if t == FBSType.BYTE:
         return _cast_byte
-    if t == TType.I16:
-        return _cast_i16
-    if t == TType.I32:
-        return _cast_i32
-    if t == TType.I64:
-        return _cast_i64
-    if t == TType.DOUBLE:
+    if t == FBSType.SHORT:
+        return _cast_short
+    if t == FBSType.INT:
+        return _cast_int
+    if t == FBSType.LONG:
+        return _cast_long
+    if t == FBSType.DOUBLE:
         return _cast_double
-    if t == TType.STRING:
+    if t == FBSType.STRING:
         return _cast_string
-    if t == TType.BINARY:
-        return _cast_binary
-    if t[0] == TType.LIST:
-        return _cast_list(t)
-    if t[0] == TType.SET:
-        return _cast_set(t)
-    if t[0] == TType.MAP:
-        return _cast_map(t)
-    if t[0] == TType.I32:
+    if t[0] == FBSType.I32:
         return _cast_enum(t)
-    if t[0] == TType.STRUCT:
+    if t[0] == FBSType.STRUCT:
         return _cast_struct(t)
 
 
@@ -394,17 +426,17 @@ def _cast_byte(v):
     return v
 
 
-def _cast_i16(v):
+def _cast_short(v):
     assert isinstance(v, int)
     return v
 
 
-def _cast_i32(v):
+def _cast_int(v):
     assert isinstance(v, int)
     return v
 
 
-def _cast_i64(v):
+def _cast_long(v):
     assert isinstance(v, int)
     return v
 
@@ -419,47 +451,8 @@ def _cast_string(v):
     return v
 
 
-def _cast_binary(v):
-    assert isinstance(v, str)
-    return v
-
-
-def _cast_list(t):
-    assert t[0] == TType.LIST
-
-    def __cast_list(v):
-        assert isinstance(v, list)
-        map(_cast(t[1]), v)
-        return v
-    return __cast_list
-
-
-def _cast_set(t):
-    assert t[0] == TType.SET
-
-    def __cast_set(v):
-        assert isinstance(v, (list, set))
-        map(_cast(t[1]), v)
-        if not isinstance(v, set):
-            return set(v)
-        return v
-    return __cast_set
-
-
-def _cast_map(t):
-    assert t[0] == TType.MAP
-
-    def __cast_map(v):
-        assert isinstance(v, dict)
-        for key in v:
-            v[_cast(t[1][0])(key)] = \
-                _cast(t[1][1])(v[key])
-        return v
-    return __cast_map
-
-
 def _cast_enum(t):
-    assert t[0] == TType.I32
+    assert t[0] == FBSType.I32
 
     def __cast_enum(v):
         assert isinstance(v, int)
@@ -471,7 +464,7 @@ def _cast_enum(t):
 
 
 def _cast_struct(t):   # struct/exception/union
-    assert t[0] == TType.STRUCT
+    assert t[0] == FBSType.STRUCT
 
     def __cast_struct(v):
         if isinstance(v, t[1]):
@@ -518,3 +511,47 @@ def _make_enum(name, kvs):
     setattr(cls, '_VALUES_TO_NAMES', _values_to_names)
     setattr(cls, '_NAMES_TO_VALUES', _names_to_values)
     return cls
+
+def _make_empty_struct(name, FBSType=FBSType.STRUCT, base_cls=FBSPayload):
+    attrs = {'__module__': fbs_stack[-1].__name__, '_FBSType': FBSType}
+    return type(name, (base_cls, ), attrs)
+
+
+def _fill_in_struct(cls, fields, _gen_init=True):
+    # XXX: Is fbs_spec needed, since flatbuffers don't have field order?
+    fbs_spec = {}
+    default_spec = []
+    _fspec = {}
+
+    for field in fields:
+        if field[3] in _fspec:
+            raise FbsGrammerError(('\'%s\' field identifier/name has '
+                                      'already been used') % (field[3]))
+        FBSType = field[2]
+        fbs_spec[field[0]] = _fbstype_spec(FBSType, field[3], field[1])
+        default_spec.append((field[3], field[4]))
+        _fspec[field[3]] = field[1], FBSType
+    setattr(cls, 'fbs_spec', fbs_spec)
+    setattr(cls, 'default_spec', default_spec)
+    setattr(cls, '_fspec', _fspec)
+    if _gen_init:
+        gen_init(cls, fbs_spec, default_spec)
+    return cls
+
+
+def _make_struct(name, fields, FBSType=FBSType.STRUCT, base_cls=FBSPayload,
+                 _gen_init=True):
+    cls = _make_empty_struct(name, FBSType=FBSType, base_cls=base_cls)
+    return _fill_in_struct(cls, fields, _gen_init=_gen_init)
+
+def _fbstype_spec(fbstype, name, required=False):
+    if isinstance(fbstype, int):
+        return fbstype, name, required
+    else:
+        return fbstype[0], name, fbstype[1], required
+
+
+def _get_fbstype(inst, default_fbstype=None):
+    if hasattr(inst, '__dict__') and '_fbstype' in inst.__dict__:
+        return inst.__dict__['_fbstype']
+    return default_fbstype
