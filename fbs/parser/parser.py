@@ -70,9 +70,7 @@ def p_body(p):
 
 def p_namespace(p):
     '''namespace : NAMESPACE IDENTIFIER ';' '''
-    # namespace is useless in thriftpy
-    # if p[2] == 'py' or p[2] == '*':
-    #     setattr(fbs_stack[-1], '__name__', p[3])
+    setattr(fbs_stack[-1], 'namespace', p[2])
 
 def p_root(p):
     '''root : ROOT_TYPE IDENTIFIER ';' '''
@@ -145,21 +143,21 @@ def p_enum_item(p):
 
 def p_struct(p):
     '''struct : STRUCT IDENTIFIER metadata '{' field_seq '}' '''
-    val = _make_empty_struct(p[1])
+    val = _make_empty_struct(p[2])
     setattr(fbs_stack[-1], p[1], val)
     val = _fill_in_struct(val, p[5])
     _add_fbs_meta('structs', val)
 
 def p_table(p):
     '''table : TABLE IDENTIFIER metadata '{' field_seq '}' '''
-    val = _make_empty_struct(p[1])
+    val = _make_empty_struct(p[2])
     setattr(fbs_stack[-1], p[1], val)
     val = _fill_in_struct(val, p[5])
     _add_fbs_meta('tables', val)
 
 def p_union(p):
     '''union : UNION IDENTIFIER metadata '{' enum_seq '}' '''
-    val = _make_empty_struct(p[1])
+    val = _make_empty_struct(p[2])
     setattr(fbs_stack[-1], p[1], val)
     # Needs new code.
     #val = _fill_in_struct(val, p[5])
@@ -211,6 +209,7 @@ def p_simple_base_type(p):  # noqa
                         | ULONG
                         | DOUBLE
                         | STRING'''
+    # TODO: make this less verbose and handle all types
     if p[1].upper() == 'BOOL':
         p[0] = FBSType.BOOL
     elif p[1].upper() == 'BYTE':
@@ -219,6 +218,8 @@ def p_simple_base_type(p):  # noqa
         p[0] = FBSType.SHORT
     elif p[1].upper() == 'INT':
         p[0] = FBSType.INT
+    elif p[1].upper() == 'LONG':
+        p[0] = FBSType.LONG
     elif p[1].upper() == 'FLOAT':
         p[0] = FBSType.FLOAT
     elif p[1].upper() == 'DOUBLE':

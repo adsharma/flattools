@@ -37,6 +37,24 @@ class FBSType(object):
         UNION : 'UNION'
     }
 
+    _VALUES_TO_CPP_TYPES = {
+        BOOL :'bool',
+        BYTE :'char',
+        UBYTE :'uchar',
+        SHORT :'short',
+        USHORT :'ushort',
+        INT :'int64_t',
+        UINT :'uint64_t',
+        FLOAT :'float',
+        LONG :'int64_t',
+        ULONG :'uint64_t',
+        DOUBLE :'double',
+        STRING :'std::string',
+        STRUCT : 'struct',
+        TABLE : 'struct',
+        UNION : 'union'
+    }
+
 class FBSPayload(with_metaclass(TPayloadMeta, object)):
 
     __hash__ = None
