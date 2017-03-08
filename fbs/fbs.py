@@ -55,6 +55,24 @@ class FBSType(object):
         UNION : 'union'
     }
 
+    _VALUES_TO_JAVA_TYPES = {
+        BOOL :'boolean',
+        BYTE :'char',
+        UBYTE :'char',
+        SHORT :'short',
+        USHORT :'short',
+        INT :'int',
+        UINT :'int',
+        FLOAT :'float',
+        LONG :'long',
+        ULONG :'long',
+        DOUBLE :'double',
+        STRING :'String',
+        STRUCT : 'interface',
+        TABLE : 'interface',
+        UNION : 'interface'
+    }
+
 class FBSPayload(with_metaclass(TPayloadMeta, object)):
 
     __hash__ = None
