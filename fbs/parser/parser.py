@@ -113,9 +113,9 @@ def p_enum(p):  # noqa
     '''enum : ENUM IDENTIFIER metadata '{' enum_seq '}'
        enum : ENUM IDENTIFIER ':' simple_base_type metadata '{' enum_seq '}'
        enum : union'''
-    if len(p) == 8:
+    if len(p) == 9:
         val = _make_enum(p[2], p[7])
-    elif len(p) == 6:
+    elif len(p) == 7:
         val = _make_enum(p[2], p[5])
     else:
         val = p[1]
@@ -135,7 +135,7 @@ def p_enum_item(p):
     '''enum_item : IDENTIFIER '=' INTCONSTANT
                  | IDENTIFIER
                  |'''
-    if len(p) == 5:
+    if len(p) == 4:
         p[0] = [p[1], p[3]]
     elif len(p) == 2:
         p[0] = [p[1], None]
