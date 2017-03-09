@@ -8,7 +8,7 @@ public enum {{enum_name}} {
 {% if value is none %}
   {{member}},
 {% else %}
-  {{member}} = {{value}},
+  {{member}}({{value}}),
 {% endif %}
 {% endfor %}
 };
@@ -20,7 +20,7 @@ public enum {{enum_name}} {
 
 public interface {{table_name}} {
 {% for member, type in item['_fspec'].items() %}
-{% set java_type = java_types[type[1]] %}
+{% set java_type = get_type(type[1]) %}
 
   @Field(R.schema.{{namespace}}.{{member}})
   {{java_type}} get{{member}}();
