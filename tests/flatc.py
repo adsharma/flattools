@@ -7,6 +7,9 @@ import os
 import sys
 import traceback
 
+# Temporary hack
+sys.path.append("/home/asharma/src/thriftpy")
+
 from fbs.fbs import FBSType
 from fbs.parser import load, load_fp
 from fbs.parser.exc import FbsParserError, FbsGrammerError
@@ -15,23 +18,18 @@ from jinja2 import Environment, FileSystemLoader
 
 CPP_TEMPLATE='fbs_template_cpp.h'
 IJAVA_TEMPLATE='fbs_template_interface.java'
+YAML_TEMPLATE='fbs_template_yaml.yaml'
 
 def get_type(name, module, primitive):
     try:
         return primitive[name]
     except KeyError:
-        try:
-            for t in module.__fbs_meta__['tables']:
+        for namespace in ('tables', 'enums', 'unions'):
+            for t in module.__fbs_meta__[namespace]:
                 if t.__name__ == name:
                     return t.__name__
-            raise KeyError(name)
-        except KeyError:
-            try:
-              for e in module.__fbs_meta__['enums']:
-                  if e.__name__ == name:
-                      return e.__name__
-            except KeyError:
-                traceback.print_exc()
+        return name
+        #raise KeyError(name)
 
 def generate_cpp(path, tree):
     dirname, filename = os.path.split(os.path.abspath(path))
@@ -53,13 +51,26 @@ def generate_ijava(path, tree):
     setattr(tree, 'get_type', partial(get_type, primitive=tree.java_types, module=tree))
     target.write(env.get_template(IJAVA_TEMPLATE).render(tree.__dict__))
 
+def generate_yaml(path, tree):
+    dirname, filename = os.path.split(os.path.abspath(path))
+    env = Environment(loader=FileSystemLoader(['.', dirname]), trim_blocks=True)
+    prefix, extension = os.path.splitext(filename)
+    out_file = prefix + '.yaml'
+    target = open(out_file, 'w')
+    setattr(tree, 'yaml_types', FBSType._VALUES_TO_NAMES_LOWER)
+    setattr(tree, 'get_type', partial(get_type, primitive=tree.yaml_types, module=tree))
+    target.write(env.get_template(YAML_TEMPLATE).render(tree.__dict__))
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--cpp", type=bool, default=False, help="Generate C++ code")
-    parser.add_argument("--ijava", type=bool, default=True, help="Generate Java interface code")
+    parser.add_argument("--ijava", type=bool, default=False, help="Generate Java interface code")
+    parser.add_argument("--yaml", type=bool, default=True, help="Generate Yaml code")
     args, rest = parser.parse_known_args()
     filename = rest[0]
     if args.cpp:
         generate_cpp(filename, load(filename))
     if args.ijava:
         generate_ijava(filename, load(filename))
+    if args.yaml:
+        generate_yaml(filename, load(filename))

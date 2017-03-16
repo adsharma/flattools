@@ -37,6 +37,10 @@ class FBSType(object):
         UNION : 'UNION'
     }
 
+    _VALUES_TO_NAMES_LOWER = {
+      k : v.lower() for k, v in _VALUES_TO_NAMES.iteritems()
+    }
+
     _VALUES_TO_CPP_TYPES = {
         BOOL :'bool',
         BYTE :'char',

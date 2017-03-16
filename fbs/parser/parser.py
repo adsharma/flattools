@@ -87,15 +87,19 @@ def p_file_identifier(p):
 def p_metadata(p):
     '''metadata : '(' metadata_seq ')'
                 |'''
+    if len(p) > 2:
+        p[0] = p[2]
 
 def p_metadata_seq(p):
     '''metadata_seq : metadata_item ',' metadata_seq
                     | metadata_item
                     |'''
+    _parse_seq(p)
 
 def p_metadata_item(p):
     '''metadata_item : IDENTIFIER
                      | IDENTIFIER ':' scalar'''
+    p[0] = [p[1]]
 
 def p_attribute(p):
     '''attribute : ATTRIBUTE LITERAL ';' '''
@@ -184,7 +188,10 @@ def p_field(p):
 
     # field_id, required, type, name, value
     # required is hard coded to False for now
-    p[0] = [None, False, p[3], p[1], val]
+    required = False
+    if p[4]:
+        required = 'required' in p[4][0]
+    p[0] = [None, required, p[3], p[1], val]
 
 def p_type(p):
     '''type : simple_base_type
@@ -392,6 +399,8 @@ def _parse_seq(p):
         p[0] = [p[1]] + p[3]
     elif len(p) == 3:
         p[0] = [p[1]] + p[2]
+    elif len(p) == 2:
+        p[0] = [p[1]]
     elif len(p) == 1:
         p[0] = []
 
@@ -529,7 +538,7 @@ def _fill_in_struct(cls, fields, _gen_init=True):
             raise FbsGrammerError(('\'%s\' field identifier/name has '
                                       'already been used') % (field[3]))
         FBSType = field[2]
-        fbs_spec[field[0]] = _fbstype_spec(FBSType, field[3], field[1])
+        fbs_spec[field[3]] = _fbstype_spec(FBSType, field[3], field[1])
         default_spec.append((field[3], field[4]))
         _fspec[field[3]] = field[1], FBSType
     setattr(cls, 'fbs_spec', fbs_spec)
@@ -546,10 +555,7 @@ def _make_struct(name, fields, FBSType=FBSType.STRUCT, base_cls=FBSPayload,
     return _fill_in_struct(cls, fields, _gen_init=_gen_init)
 
 def _fbstype_spec(fbstype, name, required=False):
-    if isinstance(fbstype, int):
-        return fbstype, name, required
-    else:
-        return fbstype[0], name, fbstype[1], required
+    return fbstype, name, required
 
 
 def _get_fbstype(inst, default_fbstype=None):
