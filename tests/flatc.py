@@ -31,9 +31,13 @@ def get_type(name, module, primitive):
         return name
         #raise KeyError(name)
 
+GLOBAL_OPTIONS = {
+  'trim_blocks' : True,
+  'lstrip_blocks' : True,
+}
 def generate_cpp(path, tree):
     dirname, filename = os.path.split(os.path.abspath(path))
-    env = Environment(loader=FileSystemLoader(['.', dirname]), trim_blocks=True)
+    env = Environment(loader=FileSystemLoader(['.', dirname]), **GLOBAL_OPTIONS)
     prefix, extension = os.path.splitext(filename)
     out_file = prefix + '.h'
     target = open(out_file, 'w')
@@ -43,7 +47,7 @@ def generate_cpp(path, tree):
 
 def generate_ijava(path, tree):
     dirname, filename = os.path.split(os.path.abspath(path))
-    env = Environment(loader=FileSystemLoader(['.', dirname]), trim_blocks=True)
+    env = Environment(loader=FileSystemLoader(['.', dirname]), **GLOBAL_OPTIONS)
     prefix, extension = os.path.splitext(filename)
     out_file = 'I' + prefix + '.java'
     target = open(out_file, 'w')
@@ -53,7 +57,7 @@ def generate_ijava(path, tree):
 
 def generate_yaml(path, tree):
     dirname, filename = os.path.split(os.path.abspath(path))
-    env = Environment(loader=FileSystemLoader(['.', dirname]), trim_blocks=True)
+    env = Environment(loader=FileSystemLoader(['.', dirname]), **GLOBAL_OPTIONS)
     prefix, extension = os.path.splitext(filename)
     out_file = prefix + '.yaml'
     target = open(out_file, 'w')

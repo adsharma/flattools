@@ -4,8 +4,9 @@
 attributes:
 {% for member, type in item['_fspec'].items() %}
 {% set yaml_type = get_type(type[1]) %}
+{% set optional = not type[0] %}
     {{member}}:
-        optional: {{item['fbs_spec'][member][2]}}
+        optional: {{optional}}
         type: {{yaml_type}}
 {% endfor %}
 {% endfor %}

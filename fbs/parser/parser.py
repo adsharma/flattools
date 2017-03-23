@@ -89,6 +89,8 @@ def p_metadata(p):
                 |'''
     if len(p) > 2:
         p[0] = p[2]
+    else:
+        p[0] = []
 
 def p_metadata_seq(p):
     '''metadata_seq : metadata_item ',' metadata_seq
@@ -186,12 +188,18 @@ def p_field(p):
     else:
         val = None
 
-    # field_id, required, type, name, value
-    # required is hard coded to False for now
     required = False
-    if p[4]:
-        required = 'required' in p[4][0]
-    p[0] = [None, required, p[3], p[1], val]
+    if len(p) > 6:
+        metadata = p[6]
+    else:
+        metadata = p[4]
+
+    if metadata:
+        # unbox the list (foo:bar is relatively uncommon)
+        metadata = [ x[0] for x in metadata ]
+        required = 'required' in metadata
+    # field_id, required, type, name, value, metadata
+    p[0] = [None, required, p[3], p[1], val, metadata]
 
 def p_type(p):
     '''type : simple_base_type
@@ -534,13 +542,15 @@ def _fill_in_struct(cls, fields, _gen_init=True):
     _fspec = {}
 
     for field in fields:
+        # field format: field_id, required, type, name, value, metadata
+        # See p_field() above for details
         if field[3] in _fspec:
             raise FbsGrammerError(('\'%s\' field identifier/name has '
                                       'already been used') % (field[3]))
         FBSType = field[2]
         fbs_spec[field[3]] = _fbstype_spec(FBSType, field[3], field[1])
         default_spec.append((field[3], field[4]))
-        _fspec[field[3]] = field[1], FBSType
+        _fspec[field[3]] = field[1], FBSType, field[5]
     setattr(cls, 'fbs_spec', fbs_spec)
     setattr(cls, 'default_spec', default_spec)
     setattr(cls, '_fspec', _fspec)

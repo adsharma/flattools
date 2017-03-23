@@ -45,14 +45,24 @@ struct {{table_name}} FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.EndTable();
   }
   void ByteOrderFields() {
-    flatbuffers::ByteOrderScalar<int64_t>(GetAddressOf(VT_OBJ_ID));
-    flatbuffers::ByteOrderScalar<int64_t>(GetAddressOf(VT_AGE));
-    flatbuffers::ByteOrderScalar<int64_t>(GetAddressOf(VT_SCORE));
+     {% for member, type in item['_fspec'].items() %}
+       {% set cpp_type = cpp_types[type[1]] %}
+       {% set MEMBER = member.upper() %}
+       {% set key = 'key' in type[2] and (cpp_type != 'std::string') %}
+       {%- if key %}
+    flatbuffers::ByteOrderScalar<{{cpp_type}}>(GetAddressOf(VT_{{MEMBER}}));
+       {% endif %}
+     {% endfor %}
   }
   void FlatbufferOrderFields() {
-    flatbuffers::FlatbufferOrderScalar<int64_t>(GetAddressOf(VT_OBJ_ID));
-    flatbuffers::FlatbufferOrderScalar<int64_t>(GetAddressOf(VT_AGE));
-    flatbuffers::FlatbufferOrderScalar<int64_t>(GetAddressOf(VT_SCORE));
+     {% for member, type in item['_fspec'].items() %}
+       {% set cpp_type = cpp_types[type[1]] %}
+       {% set MEMBER = member.upper() %}
+       {% set key = 'key' in type[2] and (cpp_type != 'std::string') %}
+       {%- if key %}
+    flatbuffers::FlatbufferOrderScalar<{{cpp_type}}>(GetAddressOf(VT_{{MEMBER}}));
+       {% endif %}
+     {% endfor %}
   }
   const uint8_t *GetKey() const {
     return GetAddressOf(VT_OBJ_ID);
