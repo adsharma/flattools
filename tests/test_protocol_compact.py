@@ -179,7 +179,7 @@ def test_pack_map():
 
 def test_unpack_map():
     b, proto = gen_proto(b"\x01\x84\x01\x61\x04")
-    assert {u'a': 2} == proto.read_val(TType.MAP, (TType.STRING, TType.I16))
+    assert {'a': 2} == proto.read_val(TType.MAP, (TType.STRING, TType.I16))
 
 
 def test_write_message_begin():

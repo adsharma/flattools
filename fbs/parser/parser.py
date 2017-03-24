@@ -5,7 +5,7 @@ IDL Ref:
     https://google.github.io/flatbuffers/flatbuffers_grammar.html
 """
 
-from __future__ import absolute_import
+
 
 import collections
 import os

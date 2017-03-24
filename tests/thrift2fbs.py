@@ -36,17 +36,17 @@ def check_fbs_unsupported(tree):
 def generate_fbs(tree):
     meta = tree.__thrift_meta__
     for s in meta['structs']:
-        print 'table', s.__name__, '{'
-        for order, field in s.thrift_spec.items():
-            print '  ', field[1], ':', fbstype(field), ';'
-        print '}'
-        print
+        print('table', s.__name__, '{')
+        for order, field in list(s.thrift_spec.items()):
+            print('  ', field[1], ':', fbstype(field), ';')
+        print('}')
+        print()
     for e in meta['enums']:
-        print 'enum', e.__name__, ':', fbstype([e._ttype]), '{'
-        for field, value in e._NAMES_TO_VALUES.items():
-            print "  %s = %s," % (field, value)
-        print '}'
-        print
+        print('enum', e.__name__, ':', fbstype([e._ttype]), '{')
+        for field, value in list(e._NAMES_TO_VALUES.items()):
+            print("  %s = %s," % (field, value))
+        print('}')
+        print()
 
 if __name__ == '__main__':
     tree = load(sys.argv[1])

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
+
 
 from thriftpy import load
 from thriftpy.thrift import TPayload, TException, TType
@@ -29,11 +29,11 @@ def test_load_struct():
     assert ab_tt.PhoneNumber.__base__ == TPayload
 
     ab_thrift_spec = {}
-    for k, vs in ab.PhoneNumber.thrift_spec.items():
+    for k, vs in list(ab.PhoneNumber.thrift_spec.items()):
         ab_thrift_spec[k] = [str(v).replace('_thrift', '') for v in vs]
 
     ab_tt_thrift_spec = {}
-    for k, vs in ab_tt.PhoneNumber.thrift_spec.items():
+    for k, vs in list(ab_tt.PhoneNumber.thrift_spec.items()):
         ab_tt_thrift_spec[k] = [str(v).replace('_thrift', '') for v in vs]
     assert ab_thrift_spec == ab_tt_thrift_spec
 

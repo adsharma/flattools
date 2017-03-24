@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
+
 
 from .exc import FbsLexerError
 
@@ -45,7 +45,7 @@ tokens = (
     'DUBCONSTANT',
     'LITERAL',
     'IDENTIFIER',
-) + tuple(map(lambda kw: kw.upper(), keywords))
+) + tuple([kw.upper() for kw in keywords])
 
 
 t_ignore = ' \t\r'   # whitespace

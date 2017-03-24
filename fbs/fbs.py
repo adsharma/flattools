@@ -38,7 +38,7 @@ class FBSType(object):
     }
 
     _VALUES_TO_NAMES_LOWER = {
-      k : v.lower() for k, v in _VALUES_TO_NAMES.iteritems()
+      k : v.lower() for k, v in _VALUES_TO_NAMES.items()
     }
 
     _VALUES_TO_CPP_TYPES = {
@@ -82,7 +82,7 @@ class FBSPayload(with_metaclass(TPayloadMeta, object)):
     __hash__ = None
 
     def __repr__(self):
-        l = ['%s=%r' % (key, value) for key, value in self.__dict__.items()]
+        l = ['%s=%r' % (key, value) for key, value in list(self.__dict__.items())]
         return '%s(%s)' % (self.__class__.__name__, ', '.join(l))
 
     def __str__(self):

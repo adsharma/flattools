@@ -15,7 +15,7 @@ v3            test_tracked_client_v3_native_server test_tracked_client_v3_tracke
 ============= ==================================== ======================================== ========================================
 '''  # noqa
 
-from __future__ import absolute_import
+
 
 import contextlib
 import multiprocessing
@@ -29,7 +29,7 @@ import time
 import thriftpy
 
 try:
-    import dbm
+    import dbm.ndbm
 except ImportError:
     import dbm.ndbm as dbm
 
@@ -72,7 +72,7 @@ PORT = _get_port()
 
 class SampleTracker(TrackerBase):
     def record(self, header, exception):
-        db = dbm.open(db_file, 'w')
+        db = dbm.ndbm.open(db_file, 'w')
         key = "%s:%s" % (header.request_id, header.seq)
         db[key.encode("ascii")] = pickle.dumps(header.__dict__)
         db.close()
@@ -86,7 +86,7 @@ class SampleTracker(TrackerBase):
 
 class Tracker_V2(TrackerBaseV2):
     def record(self, header, exception):
-        db = dbm.open(db_file, 'w')
+        db = dbm.ndbm.open(db_file, 'w')
         key = "%s:%s" % (header.request_id, header.seq)
         db[key.encode("ascii")] = pickle.dumps(header.__dict__)
         db.close()
@@ -264,7 +264,7 @@ def client(client_class=TTrackedClient, port=PORT):
 
 @pytest.fixture
 def dbm_db(request):
-    db = dbm.open(db_file, 'n')
+    db = dbm.ndbm.open(db_file, 'n')
     db.close()
 
     def fin():
@@ -309,7 +309,7 @@ def test_tracker(server, dbm_db, tracker_ctx):
 
     time.sleep(0.2)
 
-    db = dbm.open(db_file, 'r')
+    db = dbm.ndbm.open(db_file, 'r')
     headers = list(db.keys())
     assert len(headers) == 1
 
@@ -340,7 +340,7 @@ def test_tracker_chain(server, server1, server2, dbm_db, tracker_ctx):
 
     time.sleep(0.2)
 
-    db = dbm.open(db_file, 'r')
+    db = dbm.ndbm.open(db_file, 'r')
     headers = list(db.keys())
     assert len(headers) == 5
 
@@ -360,7 +360,7 @@ def test_exception(server, dbm_db, tracker_ctx):
         with client() as c:
             c.get("jane")
 
-    db = dbm.open(db_file, 'r')
+    db = dbm.ndbm.open(db_file, 'r')
     headers = list(db.keys())
     assert len(headers) == 1
 
@@ -394,7 +394,7 @@ def test_annotation(server, dbm_db, tracker_ctx):
 
     time.sleep(0.2)
 
-    db = dbm.open(db_file, 'r')
+    db = dbm.ndbm.open(db_file, 'r')
     headers = list(db.keys())
 
     data = [pickle.loads(db[i]) for i in headers]
@@ -416,7 +416,7 @@ def test_counter(server, dbm_db, tracker_ctx):
 
     time.sleep(0.2)
 
-    db = dbm.open(db_file, 'r')
+    db = dbm.ndbm.open(db_file, 'r')
     headers = list(db.keys())
 
     data = [pickle.loads(db[i]) for i in headers]
@@ -459,7 +459,7 @@ def test_tracked_client_v2_tracked_server_v2(
         c.ping()
         time.sleep(0.2)
 
-        db = dbm.open(db_file, 'r')
+        db = dbm.ndbm.open(db_file, 'r')
         headers = list(db.keys())
         assert len(headers) == 1
 
@@ -488,7 +488,7 @@ def test_tracked_client_v2_tracked_server_v3(server, dbm_db, tracker_ctx):
         c.ping()
         time.sleep(0.2)
 
-        db = dbm.open(db_file, 'r')
+        db = dbm.ndbm.open(db_file, 'r')
         headers = list(db.keys())
         assert len(headers) == 1
 
@@ -535,7 +535,7 @@ def test_tracked_client_v3_tracked_server_v2(
 
         time.sleep(0.2)
 
-        db = dbm.open(db_file, 'r')
+        db = dbm.ndbm.open(db_file, 'r')
         headers = list(db.keys())
         assert len(headers) == 1
 
