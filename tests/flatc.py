@@ -7,9 +7,6 @@ import os
 import sys
 import traceback
 
-# Temporary hack
-sys.path.append("/home/asharma/src/thriftpy")
-
 from fbs.fbs import FBSType
 from fbs.parser import load, load_fp
 from fbs.parser.exc import FbsParserError, FbsGrammerError
@@ -29,7 +26,6 @@ def get_type(name, module, primitive):
                 if t.__name__ == name:
                     return t.__name__
         return name
-        #raise KeyError(name)
 
 GLOBAL_OPTIONS = {
   'trim_blocks' : True,
