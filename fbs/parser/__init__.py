@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 """
-    thriftpy.parser
+    fbs.parser
     ~~~~~~~~~~~~~~~
 
-    Thrift parser using ply
+    Flatbuffer parser using ply
 """
 
 
@@ -16,7 +16,7 @@ from .parser import parse, parse_fp
 
 
 def load(path, module_name=None, include_dirs=None, include_dir=None):
-    """Load thrift file as a module.
+    """Load fbs file as a module.
 
     The module loaded and objects inside may only be pickled if module_name
     was provided.
@@ -26,20 +26,20 @@ def load(path, module_name=None, include_dirs=None, include_dir=None):
     `include_dirs`.
     """
     real_module = bool(module_name)
-    thrift = parse(path, module_name, include_dirs=include_dirs,
+    fbs = parse(path, module_name, include_dirs=include_dirs,
                    include_dir=include_dir)
 
     if real_module:
-        sys.modules[module_name] = thrift
-    return thrift
+        sys.modules[module_name] = fbs
+    return fbs
 
 
 def load_fp(source, module_name):
-    """Load thrift file like object as a module.
+    """Load fbs file like object as a module.
     """
-    thrift = parse_fp(source, module_name)
-    sys.modules[module_name] = thrift
-    return thrift
+    fbs = parse_fp(source, module_name)
+    sys.modules[module_name] = fbs
+    return fbs
 
 
 def _import_module(import_name):
@@ -51,27 +51,27 @@ def _import_module(import_name):
 
 
 def load_module(fullname):
-    """Load thrift_file by fullname, fullname should have '_thrift' as
+    """Load fbs by fullname, fullname should have '_fbs' as
     suffix.
-    The loader will replace the '_thrift' with '.thrift' and use it as
-    filename to locate the real thrift file.
+    The loader will replace the '_fbs' with '.fbs' and use it as
+    filename to locate the real fbs file.
     """
-    if not fullname.endswith("_thrift"):
+    if not fullname.endswith("_fbs"):
         raise ImportError(
-            "ThriftPy can only load module with '_thrift' suffix")
+            "FlatbufferPy can only load module with '_fbs' suffix")
 
     if fullname in sys.modules:
         return sys.modules[fullname]
 
     if '.' in fullname:
-        module_name, thrift_module_name = fullname.rsplit('.', 1)
+        module_name, fbs_module_name = fullname.rsplit('.', 1)
         module = _import_module(module_name)
         path_prefix = os.path.dirname(os.path.abspath(module.__file__))
-        path = os.path.join(path_prefix, thrift_module_name)
+        path = os.path.join(path_prefix, fbs_module_name)
     else:
         path = fullname
-    thrift_file = "{0}.thrift".format(path[:-7])
+    fbs_file = "{0}.fbs".format(path[:-7])
 
-    module = load(thrift_file, module_name=fullname)
+    module = load(fbs_file, module_name=fullname)
     sys.modules[fullname] = module
     return sys.modules[fullname]
