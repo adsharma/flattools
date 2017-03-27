@@ -8,6 +8,7 @@ IDL Ref:
 
 
 import collections
+import operator
 import os
 import sys
 import types
@@ -255,6 +256,9 @@ fbs_stack = []
 include_dirs_ = ['.']
 fbs_cache = {}
 
+def sort_members(fbs):
+   for member in ('tables', 'structs', 'unions', 'enum'):
+      fbs.__fbs_meta__[member] = sorted(fbs.__fbs_meta__[member])
 
 def parse(path, module_name=None, include_dirs=None, include_dir=None,
           lexer=None, parser=None, enable_cache=True):
@@ -341,6 +345,7 @@ def parse(path, module_name=None, include_dirs=None, include_dir=None,
 
     if enable_cache:
         fbs_cache[cache_key] = fbs
+    sort_members(fbs)
     return fbs
 
 
@@ -387,6 +392,7 @@ def parse_fp(source, module_name, lexer=None, parser=None, enable_cache=True):
 
     if enable_cache:
         fbs_cache[module_name] = fbs
+    sort_members(fbs)
     return fbs
 
 
@@ -537,11 +543,11 @@ def _make_empty_struct(name, FBSType=FBSType.STRUCT, base_cls=FBSPayload):
 
 def _fill_in_struct(cls, fields, _gen_init=True):
     # XXX: Is fbs_spec needed, since flatbuffers don't have field order?
-    fbs_spec = {}
+    fbs_spec = collections.OrderedDict()
     default_spec = []
-    _fspec = {}
+    _fspec = collections.OrderedDict()
 
-    for field in fields:
+    for field in sorted(fields, key=operator.itemgetter(3)):
         # field format: field_id, required, type, name, value, metadata
         # See p_field() above for details
         if field[3] in _fspec:
