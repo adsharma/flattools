@@ -35,7 +35,7 @@ def generate_cpp(path, tree):
     dirname, filename = os.path.split(os.path.abspath(path))
     env = Environment(loader=FileSystemLoader(['.', dirname]), **GLOBAL_OPTIONS)
     prefix, extension = os.path.splitext(filename)
-    out_file = prefix + '.h'
+    out_file = prefix + '_generated.h'
     target = open(out_file, 'w')
     setattr(tree, 'cpp_types', FBSType._VALUES_TO_CPP_TYPES)
     setattr(tree, 'get_type', partial(get_type, primitive=tree.cpp_types, module=tree))

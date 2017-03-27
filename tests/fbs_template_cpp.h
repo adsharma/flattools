@@ -14,7 +14,7 @@ struct {{table_name}}T;
 struct {{table_name}}T : public flatbuffers::NativeTable {
 {% for member, type in item['_fspec'].items() %}
 {% set cpp_type = cpp_types[type[1]] %}
-{{cpp_type}} {{member}};
+  {{cpp_type}} {{member}};
 {% endfor %}
 };
 
@@ -31,8 +31,13 @@ struct {{table_name}} FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   {% for member, type in item['_fspec'].items() %}
   {% set cpp_type = cpp_types[type[1]] %}
   {% set MEMBER = member.upper() %}
+  {% if (cpp_type != 'std::string') %}
   {{cpp_type}} {{member}}() const { return GetField<{{cpp_type}}>(VT_{{MEMBER}}, 0); }
   bool mutate_{{member}}({{cpp_type}} _{{member}}) { return SetField<{{cpp_type}}>(VT_{{MEMBER}}, _{{member}}); }
+  {% else %}
+  const flatbuffers::IString *{{member}}() const { return reinterpret_cast<const flatbuffers::IString *>(GetAddressOf(VT_{{MEMBER}})); }
+  flatbuffers::IString *mutable_{{member}}() { return reinterpret_cast<flatbuffers::IString *>(GetAddressOf(VT_{{MEMBER}})); }
+  {% endif %}
   {% endfor %}
 
   bool Verify(flatbuffers::Verifier &verifier) const {
@@ -87,15 +92,19 @@ struct {{table_name}} FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct {{table_name}}Builder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_obj_id(int64_t obj_id) { fbb_.AddElement<int64_t>({{table_name}}::VT_OBJ_ID, obj_id, 0); }
-  void add_age(int64_t age) { fbb_.AddElement<int64_t>({{table_name}}::VT_AGE, age, 0); }
-  void add_country(flatbuffers::Offset<flatbuffers::String> country) { fbb_.AddOffset({{table_name}}::VT_COUNTRY, country); }
-  void add_score(double score) { fbb_.AddElement<double>({{table_name}}::VT_SCORE, score, 0.0); }
-  void add_name(flatbuffers::Offset<flatbuffers::String> name) { fbb_.AddOffset({{table_name}}::VT_NAME, name); }
-  void add_mydata(flatbuffers::Offset<flatbuffers::String> mydata) { fbb_.AddOffset({{table_name}}::VT_MYDATA, mydata); }
+     {% for member, type in item['_fspec'].items() %}
+       {% set cpp_type = cpp_types[type[1]] %}
+       {% set MEMBER = member.upper() %}
+       {% if (cpp_type != 'std::string') %}
+  void add_{{member}}({{cpp_type}} {{member}}) { fbb_.AddElement<{{cpp_type}}>({{table_name}}::VT_{{MEMBER}}, {{member}}, 0); }
+       {% else %}
+  void add_{{member}}(flatbuffers::Offset<flatbuffers::String> {{member}}) { fbb_.AddOffset({{table_name}}::VT_{{MEMBER}}, {{member}}); }
+       {% endif %}
+     {% endfor %}
   {{table_name}}Builder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   {{table_name}}Builder &operator=(const {{table_name}}Builder &);
   flatbuffers::Offset<{{table_name}}> Finish() {
+    // FIXME
     auto o = flatbuffers::Offset<{{table_name}}>(fbb_.EndTable(start_, 6));
     fbb_.Required(o, {{table_name}}::VT_COUNTRY);  // country
     return o;
@@ -103,53 +112,75 @@ struct {{table_name}}Builder {
 };
 
 inline flatbuffers::Offset<{{table_name}}> Create{{table_name}}(flatbuffers::FlatBufferBuilder &_fbb,
-    int64_t obj_id = 0,
-    int64_t age = 0,
-    flatbuffers::Offset<flatbuffers::String> country = 0,
-    double score = 0.0,
-    flatbuffers::Offset<flatbuffers::String> name = 0,
-    flatbuffers::Offset<flatbuffers::String> mydata = 0) {
+  {% for member, type in item['_fspec'].items() %}
+  {% set cpp_type = cpp_types[type[1]] %}
+  {% if (cpp_type != 'std::string') %}
+    {{cpp_type}} {{member}} = 0,
+  {% else %}
+    flatbuffers::Offset<flatbuffers::String> {{member}} = 0,
+  {% endif %}
+  {% endfor %}
+  ) {
   {{table_name}}Builder builder_(_fbb);
-  builder_.add_mydata(mydata);
-  builder_.add_name(name);
-  builder_.add_score(score);
-  builder_.add_country(country);
-  builder_.add_age(age);
-  builder_.add_obj_id(obj_id);
+  {% for member, type in item['_fspec'].items() %}
+  builder_.add_{{member}}({{member}});
+  {% endfor %}
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<{{table_name}}> Create{{table_name}}Direct(flatbuffers::FlatBufferBuilder &_fbb,
-    int64_t obj_id = 0,
-    int64_t age = 0,
-    const char *country = nullptr,
-    double score = 0.0,
-    const char *name = nullptr,
-    const char *mydata = nullptr) {
-  return Create{{table_name}}(_fbb, obj_id, age, country ? _fbb.CreateString(country) : 0, score, name ? _fbb.CreateString(name) : 0, mydata ? _fbb.CreateString(mydata) : 0);
+  {% for member, type in item['_fspec'].items() %}
+  {% set cpp_type = cpp_types[type[1]] %}
+  {% if (cpp_type != 'std::string') %}
+    {{cpp_type}} {{member}} = 0,
+  {% else %}
+    const char *{{member}} = nullptr,
+  {% endif %}
+  {% endfor %}
+  ) {
+  return Create{{table_name}}(_fbb,
+  {% for member, type in item['_fspec'].items() %}
+  {% set cpp_type = cpp_types[type[1]] %}
+  {% if (cpp_type != 'std::string') %}
+    {{member}},
+  {% else %}
+    {{member}} ? _fbb.CreateString({{member}}) : 0,
+  {% endif %}
+  {% endfor %}
+  );
 }
 
 inline flatbuffers::Offset<{{table_name}}> Create{{table_name}}(flatbuffers::FlatBufferBuilder &_fbb, const {{table_name}}T *_o);
 
 inline std::unique_ptr<{{table_name}}T> {{table_name}}::UnPack() const {
   auto _o = new {{table_name}}T();
-  { auto _e = obj_id(); _o->obj_id = _e; };
-  { auto _e = age(); _o->age = _e; };
-  { auto _e = country(); if (_e) _o->country = _e->str(); };
-  { auto _e = score(); _o->score = _e; };
-  { auto _e = name(); if (_e) _o->name = _e->str(); };
-  { auto _e = mydata(); if (_e) _o->mydata = _e->str(); };
+  {% for member, type in item['_fspec'].items() %}
+  {% set cpp_type = cpp_types[type[1]] %}
+  {% if (cpp_type != 'std::string') %}
+  { auto _e = {{member}}; _o->{{member}}= _e; };
+  {% else %}
+  { auto _e = {{member}}((); if (_e) _o->{{member}}= _e->str(); };
+  {% endif %}
+  {% endfor %}
   return std::unique_ptr<{{table_name}}T>(_o);
 }
 
 inline flatbuffers::Offset<{{table_name}}> Create{{table_name}}(flatbuffers::FlatBufferBuilder &_fbb, const {{table_name}}T *_o) {
   return Create{{table_name}}(_fbb,
-    _o->obj_id,
-    _o->age,
-    _fbb.CreateString(_o->country),
-    _o->score,
-    _o->name.size() ? _fbb.CreateString(_o->name) : 0,
-    _o->mydata.size() ? _fbb.CreateString(_o->mydata) : 0);
+  {% for member, type in item['_fspec'].items() %}
+  {% set cpp_type = cpp_types[type[1]] %}
+  {% set key = 'key' in type[2] and (cpp_type != 'std::string') %}
+  {% if (cpp_type != 'std::string') %}
+    _o->{{member}},
+  {% else %}
+    {% if key %}
+    _fbb.CreateString(_o->{{member}}),
+    {% else %}
+    _o->{{member}}.size() ? _fbb.CreateString(_o->{{member}}) : 0,
+    {% endif %}
+  {% endif %}
+  {% endfor %}
+  );
 }
 
 inline const {{table_name}} *Get{{table_name}}(const void *buf) { return flatbuffers::GetRoot<{{table_name}}>(buf); }
