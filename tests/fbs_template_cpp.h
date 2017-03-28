@@ -2,6 +2,7 @@
 
 #pragma once
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/kvstore_builder.h"
 
 namespace {{namespace}} {
 
@@ -86,11 +87,11 @@ struct {{table_name}} FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
       sizeof(flatbuffers::String) +
       1 * sizeof(flatbuffers::String);
   }
-  std::unique_ptr<{{table_name}}T> UnPack() const;
+  {{table_name}}T *UnPack(const flatbuffers::resolver_function_t *resolver = nullptr) const;
 };
 
 struct {{table_name}}Builder {
-  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::KVStoreBuilder &fbb_;
   flatbuffers::uoffset_t start_;
      {% for member, type in item['_fspec'].items() %}
        {% set cpp_type = cpp_types[type[1]] %}
@@ -101,7 +102,7 @@ struct {{table_name}}Builder {
   void add_{{member}}(flatbuffers::Offset<flatbuffers::String> {{member}}) { fbb_.AddOffset({{table_name}}::VT_{{MEMBER}}, {{member}}); }
        {% endif %}
      {% endfor %}
-  {{table_name}}Builder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
+  {{table_name}}Builder(flatbuffers::KVStoreBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   {{table_name}}Builder &operator=(const {{table_name}}Builder &);
   flatbuffers::Offset<{{table_name}}> Finish() {
     // FIXME
@@ -111,13 +112,17 @@ struct {{table_name}}Builder {
   }
 };
 
-inline flatbuffers::Offset<{{table_name}}> Create{{table_name}}(flatbuffers::FlatBufferBuilder &_fbb,
+inline flatbuffers::Offset<{{table_name}}> Create{{table_name}}(flatbuffers::KVStoreBuilder &_fbb,
   {% for member, type in item['_fspec'].items() %}
   {% set cpp_type = cpp_types[type[1]] %}
+  {% set delim = ',' %}
+  {% if loop.last %}
+  {% set delim = '' %}
+  {% endif %}
   {% if (cpp_type != 'std::string') %}
-    {{cpp_type}} {{member}} = 0,
+    {{cpp_type}} {{member}} = 0{{delim}}
   {% else %}
-    flatbuffers::Offset<flatbuffers::String> {{member}} = 0,
+    flatbuffers::Offset<flatbuffers::String> {{member}} = 0{{delim}}
   {% endif %}
   {% endfor %}
   ) {
@@ -128,55 +133,69 @@ inline flatbuffers::Offset<{{table_name}}> Create{{table_name}}(flatbuffers::Fla
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<{{table_name}}> Create{{table_name}}Direct(flatbuffers::FlatBufferBuilder &_fbb,
+inline flatbuffers::Offset<{{table_name}}> Create{{table_name}}Direct(flatbuffers::KVStoreBuilder &_fbb,
   {% for member, type in item['_fspec'].items() %}
   {% set cpp_type = cpp_types[type[1]] %}
+  {% set delim = ',' %}
+  {% if loop.last %}
+  {% set delim = '' %}
+  {% endif %}
   {% if (cpp_type != 'std::string') %}
-    {{cpp_type}} {{member}} = 0,
+    {{cpp_type}} {{member}} = 0{{delim}}
   {% else %}
-    const char *{{member}} = nullptr,
+    const char *{{member}} = nullptr{{delim}}
   {% endif %}
   {% endfor %}
   ) {
   return Create{{table_name}}(_fbb,
   {% for member, type in item['_fspec'].items() %}
   {% set cpp_type = cpp_types[type[1]] %}
+  {% set delim = ',' %}
+  {% if loop.last %}
+  {% set delim = '' %}
+  {% endif %}
   {% if (cpp_type != 'std::string') %}
-    {{member}},
+    {{member}}{{delim}}
   {% else %}
-    {{member}} ? _fbb.CreateString({{member}}) : 0,
+    {{member}} ? _fbb.CreateString({{member}}) : 0{{delim}}
   {% endif %}
   {% endfor %}
   );
 }
 
-inline flatbuffers::Offset<{{table_name}}> Create{{table_name}}(flatbuffers::FlatBufferBuilder &_fbb, const {{table_name}}T *_o);
+inline flatbuffers::Offset<{{table_name}}> Create{{table_name}}(flatbuffers::KVStoreBuilder &_fbb, const {{table_name}}T *_o, const flatbuffers::rehasher_function_t *rehasher = nullptr);
 
-inline std::unique_ptr<{{table_name}}T> {{table_name}}::UnPack() const {
+inline {{table_name}}T *{{table_name}}::UnPack(const flatbuffers::resolver_function_t *resolver) const {
+  (void) resolver;
   auto _o = new {{table_name}}T();
   {% for member, type in item['_fspec'].items() %}
   {% set cpp_type = cpp_types[type[1]] %}
   {% if (cpp_type != 'std::string') %}
-  { auto _e = {{member}}; _o->{{member}}= _e; };
+  { auto _e = {{member}}(); _o->{{member}}= _e; };
   {% else %}
-  { auto _e = {{member}}((); if (_e) _o->{{member}}= _e->str(); };
+  { auto _e = {{member}}(); if (_e) _o->{{member}}= _e->str(); };
   {% endif %}
   {% endfor %}
-  return std::unique_ptr<{{table_name}}T>(_o);
+  return _o;
 }
 
-inline flatbuffers::Offset<{{table_name}}> Create{{table_name}}(flatbuffers::FlatBufferBuilder &_fbb, const {{table_name}}T *_o) {
+inline flatbuffers::Offset<{{table_name}}> Create{{table_name}}(flatbuffers::KVStoreBuilder &_fbb, const {{table_name}}T *_o, const flatbuffers::rehasher_function_t *rehasher) {
+  (void) rehasher;
   return Create{{table_name}}(_fbb,
   {% for member, type in item['_fspec'].items() %}
   {% set cpp_type = cpp_types[type[1]] %}
+  {% set delim = ',' %}
+  {% if loop.last %}
+  {% set delim = '' %}
+  {% endif %}
   {% set key = 'key' in type[2] and (cpp_type != 'std::string') %}
   {% if (cpp_type != 'std::string') %}
-    _o->{{member}},
+    _o->{{member}}{{delim}}
   {% else %}
     {% if key %}
-    _fbb.CreateString(_o->{{member}}),
+    _fbb.CreateString(_o->{{member}}){{delim}}
     {% else %}
-    _o->{{member}}.size() ? _fbb.CreateString(_o->{{member}}) : 0,
+    _o->{{member}}.size() ? _fbb.CreateString(_o->{{member}}) : 0{{delim}}
     {% endif %}
   {% endif %}
   {% endfor %}
@@ -189,7 +208,7 @@ inline {{table_name}} *GetMutable{{table_name}}(void *buf) { return flatbuffers:
 
 inline bool Verify{{table_name}}Buffer(flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<{{table_name}}>(nullptr); }
 
-inline void Finish{{table_name}}Buffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<{{table_name}}> root) { fbb.Finish(root); }
+inline void Finish{{table_name}}Buffer(flatbuffers::KVStoreBuilder &fbb, flatbuffers::Offset<{{table_name}}> root) { fbb.Finish(root); }
 
 {% endfor %}
 
