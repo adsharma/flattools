@@ -261,7 +261,7 @@ def sort_members(fbs):
       fbs.__fbs_meta__[member] = sorted(fbs.__fbs_meta__[member])
 
 def parse(path, module_name=None, include_dirs=None, include_dir=None,
-          lexer=None, parser=None, enable_cache=True):
+          lexer=None, parser=None, enable_cache=True, enable_sort=False):
     """Parse a single fbs file to module object, e.g.::
 
         >>> from thriftpy.parser.parser import parse
@@ -345,11 +345,13 @@ def parse(path, module_name=None, include_dirs=None, include_dir=None,
 
     if enable_cache:
         fbs_cache[cache_key] = fbs
-    sort_members(fbs)
+    if enable_sort:
+        sort_members(fbs)
     return fbs
 
 
-def parse_fp(source, module_name, lexer=None, parser=None, enable_cache=True):
+def parse_fp(source, module_name, lexer=None, parser=None, enable_cache=True,
+             enable_sort=False):
     """Parse a file-like object to fbs module object, e.g.::
 
         >>> from thriftpy.fbs.parser.parser import parse_fp
@@ -392,7 +394,8 @@ def parse_fp(source, module_name, lexer=None, parser=None, enable_cache=True):
 
     if enable_cache:
         fbs_cache[module_name] = fbs
-    sort_members(fbs)
+    if enable_sort:
+        sort_members(fbs)
     return fbs
 
 
@@ -547,7 +550,10 @@ def _fill_in_struct(cls, fields, _gen_init=True):
     default_spec = []
     _fspec = collections.OrderedDict()
 
-    for field in sorted(fields, key=operator.itemgetter(3)):
+    # Use sorted() here like so:
+    # for field in fields, key=operator.itemgetter(3)):
+    # Only if args.sorted is set in main
+    for field in fields:
         # field format: field_id, required, type, name, value, metadata
         # See p_field() above for details
         if field[3] in _fspec:
