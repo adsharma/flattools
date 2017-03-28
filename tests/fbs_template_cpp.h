@@ -22,22 +22,74 @@ struct {{table_name}}T : public flatbuffers::NativeTable {
 struct {{table_name}} FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     {% set i = 4 %}
+    // keys
     {% for member, type in item['_fspec'].items() %}
     {% set MEMBER = member.upper() %}
+    {% set cpp_type = cpp_types[type[1]] %}
+    {% set key = 'key' in type[2] %}
+    {% set string_key = key and (cpp_type == 'std::string') %}
+    {% if key and not string_key %}
     VT_{{MEMBER}} = {{i}},
     {% set i = i + 2 %}
+    {% endif %}
+    {% endfor %}
+
+    // values
+    {% set i = 4 + 2 * item['meta']['key_fields'] | length %}
+    {% for member, type in item['_fspec'].items() %}
+    {% set MEMBER = member.upper() %}
+    {% set cpp_type = cpp_types[type[1]] %}
+    {% set key = 'key' in type[2] %}
+    {% set string_key = key and (cpp_type == 'std::string') %}
+    {% if string_key or not key %}
+    VT_{{MEMBER}} = {{i}},
+    {% set i = i + 2 %}
+    {% endif %}
+    {% endfor %}
+  };
+  // Internal
+  enum {
+    {% set i = 4 %}
+    // keys
+    {% for member, type in item['_fspec'].items() %}
+    {% set MEMBER = member.upper() %}
+    {% set cpp_type = cpp_types[type[1]] %}
+    {% set key = 'key' in type[2] %}
+    {% set string_key = key and (cpp_type == 'std::string') %}
+    {% if key and not string_key %}
+    _VT_{{MEMBER}} = {{i}},
+    {% set i = i + 2 %}
+    {% endif %}
+    {% endfor %}
+
+    // values
+    {% set i = 4 %}
+    {% for member, type in item['_fspec'].items() %}
+    {% set MEMBER = member.upper() %}
+    {% set cpp_type = cpp_types[type[1]] %}
+    {% set key = 'key' in type[2] %}
+    {% set string_key = key and (cpp_type == 'std::string') %}
+    {% if string_key or not key %}
+    _VT_{{MEMBER}} = {{i}},
+    {% set i = i + 2 %}
+    {% endif %}
     {% endfor %}
   };
 
   {% for member, type in item['_fspec'].items() %}
   {% set cpp_type = cpp_types[type[1]] %}
   {% set MEMBER = member.upper() %}
+  {% set key = 'key' in type[2] %}
+  {% set string_key = key and (cpp_type == 'std::string') %}
   {% if (cpp_type != 'std::string') %}
   {{cpp_type}} {{member}}() const { return GetField<{{cpp_type}}>(VT_{{MEMBER}}, 0); }
   bool mutate_{{member}}({{cpp_type}} _{{member}}) { return SetField<{{cpp_type}}>(VT_{{MEMBER}}, _{{member}}); }
-  {% else %}
+  {% elif string_key %}
   const flatbuffers::IString *{{member}}() const { return reinterpret_cast<const flatbuffers::IString *>(GetAddressOf(VT_{{MEMBER}})); }
   flatbuffers::IString *mutable_{{member}}() { return reinterpret_cast<flatbuffers::IString *>(GetAddressOf(VT_{{MEMBER}})); }
+  {% else %}
+  const flatbuffers::String *{{member}}() const { return GetPointer<const flatbuffers::String *>(VT_{{MEMBER}}); }
+  flatbuffers::String *mutable_{{member}}() { return GetPointer<flatbuffers::String *>(VT_{{MEMBER}}); }
   {% endif %}
   {% endfor %}
 
@@ -70,23 +122,44 @@ struct {{table_name}} FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
        {% endif %}
      {% endfor %}
   }
+  {% for member in item['meta']['key_fields'] %}
+     {% set type = item['_fspec'][member] %}
+     {% set cpp_type = cpp_types[type[1]] %}
+     {% set MEMBER = member.upper() %}
+     {% if loop.first %}
   const uint8_t *GetKey() const {
-    return GetAddressOf(VT_OBJ_ID);
+    return GetAddressOf(VT_{{MEMBER}});
   }
+     {% set FIRST_MEMBER = MEMBER %}
+     {% endif %}
+     {% if loop.last %}
   size_t GetKeySize() const {
-    return GetAddressOf(VT_SCORE) -
-      GetAddressOf(VT_OBJ_ID) +
-      sizeof(double);
+    return GetAddressOf(VT_{{MEMBER}}) -
+      GetAddressOf(VT_{{FIRST_MEMBER}}) +
+      sizeof({{cpp_type}});
   }
+     {% endif %}
+  {% endfor %}
+  {% for member in item['meta']['value_fields'] %}
+     {% set type = item['_fspec'][member] %}
+     {% set cpp_type = cpp_types[type[1]] %}
+     {% set MEMBER = member.upper() %}
+     {% if loop.first %}
   const uint8_t *GetValue() const {
-    return GetAddressOf(VT_COUNTRY);
+    return GetAddressOf(VT_{{MEMBER}});
   }
+     {% set FIRST_MEMBER = MEMBER %}
+     {% endif %}
+     {% if loop.last %}
+  // FIXME
   size_t GetValueSize() const {
-    return GetAddressOf(VT_MYDATA) -
+    return GetAddressOf(VT_{{MEMBER}}) -
       GetAddressOf(VT_NAME) +
       sizeof(flatbuffers::String) +
       1 * sizeof(flatbuffers::String);
   }
+     {% endif %}
+  {% endfor %}
   {{table_name}}T *UnPack(const flatbuffers::resolver_function_t *resolver = nullptr) const;
 };
 
@@ -96,18 +169,36 @@ struct {{table_name}}Builder {
      {% for member, type in item['_fspec'].items() %}
        {% set cpp_type = cpp_types[type[1]] %}
        {% set MEMBER = member.upper() %}
-       {% if (cpp_type != 'std::string') %}
-  void add_{{member}}({{cpp_type}} {{member}}) { fbb_.AddElement<{{cpp_type}}>({{table_name}}::VT_{{MEMBER}}, {{member}}, 0); }
+       {% set key = 'key' in type[2] %}
+       {% set string_key = key and (cpp_type == 'std::string') %}
+       {% if key %}
+       {% set add_element = 'AddKeyElement' %}
        {% else %}
-  void add_{{member}}(flatbuffers::Offset<flatbuffers::String> {{member}}) { fbb_.AddOffset({{table_name}}::VT_{{MEMBER}}, {{member}}); }
+       {% set add_element = 'AddElement' %}
+       {% endif %}
+       {% if string_key %}
+  void add_{{member}}(const {{cpp_type}}& {{member}}) { fbb_.{{add_element}}({{table_name}}::_VT_{{MEMBER}}, {{member}}, std::string()); }
+       {% elif (cpp_type != 'std::string') %}
+  void add_{{member}}({{cpp_type}} {{member}}) { fbb_.{{add_element}}<{{cpp_type}}>({{table_name}}::_VT_{{MEMBER}}, {{member}}, 0); }
+       {% else %}
+  void add_{{member}}(flatbuffers::Offset<flatbuffers::String> {{member}}) { fbb_.AddOffset({{table_name}}::_VT_{{MEMBER}}, {{member}}); }
        {% endif %}
      {% endfor %}
   {{table_name}}Builder(flatbuffers::KVStoreBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   {{table_name}}Builder &operator=(const {{table_name}}Builder &);
   flatbuffers::Offset<{{table_name}}> Finish() {
-    // FIXME
-    auto o = flatbuffers::Offset<{{table_name}}>(fbb_.EndTable(start_, 6));
-    fbb_.Required(o, {{table_name}}::VT_COUNTRY);  // country
+    {% set num_fields = item['_fspec'] | length %}
+    auto o = flatbuffers::Offset<{{table_name}}>(fbb_.EndTable(start_, {{num_fields}}));
+    {% for member, type in item['_fspec'].items() %}
+       {% set cpp_type = cpp_types[type[1]] %}
+       {% set MEMBER = member.upper() %}
+       {% set key = 'key' in type[2] %}
+       {% set string_key = key and (cpp_type == 'std::string') %}
+       {% set required = 'required' in type[2] %}
+       {% if required or key %}
+    fbb_.Required(o, {{table_name}}::VT_{{MEMBER}});
+       {% endif %}
+     {% endfor %}
     return o;
   }
 };
@@ -115,11 +206,15 @@ struct {{table_name}}Builder {
 inline flatbuffers::Offset<{{table_name}}> Create{{table_name}}(flatbuffers::KVStoreBuilder &_fbb,
   {% for member, type in item['_fspec'].items() %}
   {% set cpp_type = cpp_types[type[1]] %}
+  {% set key = 'key' in type[2] %}
+  {% set string_key = key and (cpp_type == 'std::string') %}
   {% set delim = ',' %}
   {% if loop.last %}
   {% set delim = '' %}
   {% endif %}
-  {% if (cpp_type != 'std::string') %}
+  {% if string_key %}
+    const {{cpp_type}}& {{member}} = ""{{delim}}
+  {% elif (cpp_type != 'std::string') %}
     {{cpp_type}} {{member}} = 0{{delim}}
   {% else %}
     flatbuffers::Offset<flatbuffers::String> {{member}} = 0{{delim}}
@@ -127,7 +222,7 @@ inline flatbuffers::Offset<{{table_name}}> Create{{table_name}}(flatbuffers::KVS
   {% endfor %}
   ) {
   {{table_name}}Builder builder_(_fbb);
-  {% for member, type in item['_fspec'].items() %}
+  {% for member, type in item['_fspec'].items() | reverse %}
   builder_.add_{{member}}({{member}});
   {% endfor %}
   return builder_.Finish();
@@ -150,14 +245,16 @@ inline flatbuffers::Offset<{{table_name}}> Create{{table_name}}Direct(flatbuffer
   return Create{{table_name}}(_fbb,
   {% for member, type in item['_fspec'].items() %}
   {% set cpp_type = cpp_types[type[1]] %}
+  {% set key = 'key' in type[2] %}
+  {% set string_key = key and (cpp_type == 'std::string') %}
   {% set delim = ',' %}
   {% if loop.last %}
   {% set delim = '' %}
   {% endif %}
-  {% if (cpp_type != 'std::string') %}
+  {% if (cpp_type != 'std::string') or string_key %}
     {{member}}{{delim}}
   {% else %}
-    {{member}} ? _fbb.CreateString({{member}}) : 0{{delim}}
+    {{member}} ? _fbb.CreateValueString({{member}}) : 0{{delim}}
   {% endif %}
   {% endfor %}
   );
@@ -184,19 +281,16 @@ inline flatbuffers::Offset<{{table_name}}> Create{{table_name}}(flatbuffers::KVS
   return Create{{table_name}}(_fbb,
   {% for member, type in item['_fspec'].items() %}
   {% set cpp_type = cpp_types[type[1]] %}
+  {% set key = 'key' in type[2] %}
+  {% set string_key = key and (cpp_type == 'std::string') %}
   {% set delim = ',' %}
   {% if loop.last %}
   {% set delim = '' %}
   {% endif %}
-  {% set key = 'key' in type[2] and (cpp_type != 'std::string') %}
-  {% if (cpp_type != 'std::string') %}
+  {% if (cpp_type != 'std::string') or string_key %}
     _o->{{member}}{{delim}}
   {% else %}
-    {% if key %}
-    _fbb.CreateString(_o->{{member}}){{delim}}
-    {% else %}
-    _o->{{member}}.size() ? _fbb.CreateString(_o->{{member}}) : 0{{delim}}
-    {% endif %}
+    _o->{{member}}.size() ? _fbb.CreateValueString(_o->{{member}}) : 0{{delim}}
   {% endif %}
   {% endfor %}
   );

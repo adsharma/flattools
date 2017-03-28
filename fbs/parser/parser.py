@@ -549,6 +549,9 @@ def _fill_in_struct(cls, fields, _gen_init=True):
     fbs_spec = collections.OrderedDict()
     default_spec = []
     _fspec = collections.OrderedDict()
+    meta = collections.OrderedDict()
+    meta['key_fields'] = []
+    meta['value_fields'] = []
 
     # Use sorted() here like so:
     # for field in fields, key=operator.itemgetter(3)):
@@ -556,16 +559,23 @@ def _fill_in_struct(cls, fields, _gen_init=True):
     for field in fields:
         # field format: field_id, required, type, name, value, metadata
         # See p_field() above for details
-        if field[3] in _fspec:
+        field_id, required, ftype, name, value, metadata = field
+        if name in _fspec:
             raise FbsGrammerError(('\'%s\' field identifier/name has '
-                                      'already been used') % (field[3]))
-        FBSType = field[2]
-        fbs_spec[field[3]] = _fbstype_spec(FBSType, field[3], field[1])
-        default_spec.append((field[3], field[4]))
-        _fspec[field[3]] = field[1], FBSType, field[5]
+                                      'already been used') % (name))
+        fbs_spec[name] = _fbstype_spec(ftype, name, required)
+        default_spec.append((name, value))
+        _fspec[name] = required, ftype, metadata
+        key = 'key' in metadata
+        string_key = key and ftype == FBSType.STRING
+        if key and not string_key:
+            meta['key_fields'].append(name)
+        else:
+            meta['value_fields'].append(name)
     setattr(cls, 'fbs_spec', fbs_spec)
     setattr(cls, 'default_spec', default_spec)
     setattr(cls, '_fspec', _fspec)
+    setattr(cls, 'meta', meta)
     if _gen_init:
         gen_init(cls, fbs_spec, default_spec)
     return cls
