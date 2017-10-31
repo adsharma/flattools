@@ -1,5 +1,7 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
 
+# -*- coding: utf-8 -*-
+import argparse
 import sys
 
 from thriftpy.thrift import TType
@@ -36,19 +38,32 @@ def check_fbs_unsupported(tree):
 def generate_fbs(tree):
     meta = tree.__thrift_meta__
     for s in meta['structs']:
-        print('table', s.__name__, '{')
+        print('table {} {{'.format(s.__name__))
         for order, field in list(s.thrift_spec.items()):
-            print('  ', field[1], ':', fbstype(field), ';')
+            print('  {}: {};'.format(field[1], fbstype(field)))
         print('}')
-        print()
+        print
     for e in meta['enums']:
-        print('enum', e.__name__, ':', fbstype([e._ttype]), '{')
+        print('enum {}: {} {{'.format(e.__name__, fbstype([e._ttype])))
         for field, value in list(e._NAMES_TO_VALUES.items()):
-            print("  %s = %s," % (field, value))
+            print('  {} = {};'.format(field, value))
         print('}')
-        print()
+        print
 
 if __name__ == '__main__':
-    tree = load(sys.argv[1])
-    check_fbs_unsupported(tree)
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-I',
+        dest='include_paths',
+        type=str,
+        help='Path to look for included thrift files')
+    parser.add_argument(
+        '--ignore-unsupported',
+        action="store_true",
+        default=True,
+        help='If true, ignore unsupported features')
+    args, unknown_args = parser.parse_known_args()
+    tree = load(unknown_args[0], include_dir=args.include_paths)
+    if not args.ignore_unsupported:
+        check_fbs_unsupported(tree)
     generate_fbs(tree)
