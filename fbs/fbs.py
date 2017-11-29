@@ -60,21 +60,39 @@ class FBSType(object):
     }
 
     _VALUES_TO_JAVA_TYPES = {
-        BOOL :'boolean',
-        BYTE :'char',
-        UBYTE :'char',
-        SHORT :'short',
-        USHORT :'short',
-        INT :'int',
-        UINT :'int',
-        FLOAT :'float',
-        LONG :'long',
-        ULONG :'long',
-        DOUBLE :'double',
-        STRING :'String',
-        STRUCT : 'interface',
-        TABLE : 'interface',
-        UNION : 'interface'
+        BOOL: 'boolean',
+        BYTE: 'char',
+        UBYTE: 'char',
+        SHORT: 'short',
+        USHORT: 'short',
+        INT: 'int',
+        UINT: 'int',
+        FLOAT: 'float',
+        LONG: 'long',
+        ULONG: 'long',
+        DOUBLE: 'double',
+        STRING: 'String',
+        STRUCT: 'interface',
+        TABLE: 'interface',
+        UNION: 'interface',
+    }
+
+    _VALUES_TO_PY_TYPES = {
+        BOOL: 'bool',
+        BYTE: 'bytes',
+        UBYTE: 'bytes',
+        SHORT: 'int',
+        USHORT: 'int',
+        INT: 'int',
+        UINT: 'int',
+        FLOAT: 'float',
+        LONG: 'long',
+        ULONG: 'long',
+        DOUBLE: 'float',
+        STRING: 'str',
+        STRUCT: 'interface',
+        TABLE: 'interface',
+        UNION: 'interface',
     }
 
 class FBSPayload(with_metaclass(TPayloadMeta, object)):
