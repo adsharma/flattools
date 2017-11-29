@@ -10,6 +10,7 @@
 from __future__ import absolute_import
 
 import functools
+import keyword
 import linecache
 import types
 
@@ -40,6 +41,7 @@ def parse_spec(ttype, spec=None):
         return "MAP<%s, %s>" % (_type(spec[0]), _type(spec[1]))
 
 
+
 def init_func_generator(cls, spec):
     """Generate `__init__` function based on TPayload.default_spec
 
@@ -59,6 +61,10 @@ def init_func_generator(cls, spec):
         return __init__
 
     varnames, defaults = zip(*spec)
+
+    # Santize varnames
+    varnames = [v if v not in keyword.kwlist else '_' + v for v in varnames]
+    spec = zip(varnames, defaults)
 
     args = ', '.join(map('{0[0]}={0[1]!r}'.format, spec))
     init = "def __init__(self, {0}):\n".format(args)
