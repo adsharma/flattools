@@ -4,11 +4,11 @@ struct Hello {
 }
 
 enum Code {
-    OK
-    WARNING
-    DANDER
-    ERROR
-    UNKNOWN
+    OK = 0,
+    WARNING = 1,
+    DANDER = 2,
+    ERROR = 3,
+    UNKNOWN = 4,
 }
 
 typedef list<Code> codelist

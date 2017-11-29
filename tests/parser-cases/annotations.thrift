@@ -40,13 +40,13 @@ typedef string ( unicode.encoding = "UTF-16" ) non_latin_string (foo="bar")
 typedef list< double ( cpp.fixed_point = "16" ) > tiny_float_list
 
 enum weekdays {
-  SUNDAY ( weekend = "yes" ),
-  MONDAY,
-  TUESDAY,
-  WEDNESDAY,
-  THURSDAY,
-  FRIDAY,
-  SATURDAY ( weekend = "yes" )
+  SUNDAY = 0 ( weekend = "yes" ),
+  MONDAY = 1,
+  TUESDAY = 2,
+  WEDNESDAY = 3,
+  THURSDAY = 4,
+  FRIDAY = 5,
+  SATURDAY = 6 ( weekend = "yes" ),
 } (foo.bar="baz")
 
 service foo_service {
