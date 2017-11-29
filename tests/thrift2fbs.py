@@ -46,7 +46,7 @@ def generate_fbs(tree):
     for e in meta['enums']:
         print('enum {}: {} {{'.format(e.__name__, fbstype([e._ttype])))
         for field, value in list(e._NAMES_TO_VALUES.items()):
-            print('  {} = {};'.format(field, value))
+            print('  {} = {},'.format(field, value))
         print('}')
         print
 
