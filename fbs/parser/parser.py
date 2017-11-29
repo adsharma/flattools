@@ -102,7 +102,10 @@ def p_metadata_seq(p):
 def p_metadata_item(p):
     '''metadata_item : IDENTIFIER
                      | IDENTIFIER ':' scalar'''
-    p[0] = [p[1]]
+    if len(p) == 4:
+        p[0] = [p[1], p[3]]
+    else:
+        p[0] = [p[1]]
 
 def p_attribute(p):
     '''attribute : ATTRIBUTE LITERAL ';' '''
@@ -196,9 +199,7 @@ def p_field(p):
         metadata = p[4]
 
     if metadata:
-        # unbox the list (foo:bar is relatively uncommon)
-        metadata = [ x[0] for x in metadata ]
-        required = 'required' in metadata
+        required = 'required' in [x[0] for x in metadata]
     # field_id, required, type, name, value, metadata
     p[0] = [None, required, p[3], p[1], val, metadata]
 
@@ -208,7 +209,7 @@ def p_type(p):
             | IDENTIFIER'''
     if len(p) == 4:
         # XXX: Save vector=true somewhere
-        p[0] = p[2]
+        p[0] = '[%s]' % p[2]
     else:
         p[0] = p[1]
 
@@ -251,6 +252,7 @@ def p_scalar(p):
               | DUBCONSTANT
               | INTCONSTANT
               | IDENTIFIER'''  # This violates grammar?
+    p[0] = p[1]
 
 fbs_stack = []
 include_dirs_ = ['.']
