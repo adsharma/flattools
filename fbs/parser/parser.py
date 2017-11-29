@@ -288,11 +288,13 @@ def parse(path, module_name=None, include_dirs=None, include_dir=None,
     if os.name == 'nt' and sys.version_info < (3, 2):
         os.path.samefile = lambda f1, f2: os.stat(f1) == os.stat(f2)
 
-    # dead include checking on current stack
+    # We support include cycles, just like other languages
+    # The parsed module object may be incomplete when we return
+    # here, but will eventually be filled out
     for fbs in fbs_stack:
         if fbs.__fbs_file__ is not None and \
                 os.path.samefile(path, fbs.__fbs_file__):
-            raise FbsParserError('Dead including on %s' % path)
+            return fbs
 
     global fbs_cache
 
