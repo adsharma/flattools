@@ -167,10 +167,8 @@ def p_table(p):
 
 def p_union(p):
     '''union : UNION IDENTIFIER metadata '{' enum_seq '}' '''
-    val = _make_empty_struct(p[2])
+    val = _make_enum(p[2], p[5])
     setattr(fbs_stack[-1], p[1], val)
-    # Needs new code.
-    #val = _fill_in_struct(val, p[5])
     _add_fbs_meta('unions', val)
 
 def p_field_seq(p):
