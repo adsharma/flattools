@@ -124,9 +124,9 @@ def p_enum(p):  # noqa
        enum : ENUM IDENTIFIER ':' simple_base_type metadata '{' enum_seq '}'
        enum : union'''
     if len(p) == 9:
-        val = _make_enum(p[2], p[7])
+        val = _make_enum(p[2], p[4], p[7])
     elif len(p) == 7:
-        val = _make_enum(p[2], p[5])
+        val = _make_enum(p[2], FBSType.INT, p[5])
     else:
         val = p[1]
     if (len(p) > 2):
@@ -143,6 +143,7 @@ def p_enum_seq(p):
 
 def p_enum_item(p):
     '''enum_item : IDENTIFIER '=' INTCONSTANT
+                 | IDENTIFIER '=' LITERAL
                  | IDENTIFIER
                  |'''
     if len(p) == 4:
@@ -518,8 +519,8 @@ def _cast_struct(t):   # struct/exception/union
     return __cast_struct
 
 
-def _make_enum(name, kvs):
-    attrs = {'__module__': fbs_stack[-1].__name__}
+def _make_enum(name, FBSType, kvs):
+    attrs = {'__module__': fbs_stack[-1].__name__, '_FBSType': FBSType}
     cls = type(name, (object, ), attrs)
 
     _values_to_names = {}
