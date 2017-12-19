@@ -23,46 +23,11 @@ tornado_requires = [
 ]
 
 dev_requires = [
-    "cython>=0.23",
     "flake8>=2.5",
     "pytest>=2.8",
     "sphinx-rtd-theme>=0.1.9",
     "sphinx>=1.3",
 ] + tornado_requires
-
-
-# cython detection
-try:
-    from Cython.Build import cythonize
-    CYTHON = True
-except ImportError:
-    CYTHON = False
-
-cmdclass = {}
-ext_modules = []
-
-# pypy detection
-PYPY = "__pypy__" in sys.modules
-UNIX = platform.system() in ("Linux", "Darwin")
-
-# only build ext in CPython with UNIX platform
-if UNIX and not PYPY:
-    # rebuild .c files if cython available
-    if CYTHON:
-        cythonize("thriftpy/transport/cybase.pyx")
-        cythonize("thriftpy/transport/**/*.pyx")
-        cythonize("thriftpy/protocol/cybin/cybin.pyx")
-
-    ext_modules.append(Extension("thriftpy.transport.cybase",
-                                 ["thriftpy/transport/cybase.c"]))
-    ext_modules.append(Extension("thriftpy.transport.buffered.cybuffered",
-                                 ["thriftpy/transport/buffered/cybuffered.c"]))
-    ext_modules.append(Extension("thriftpy.transport.memory.cymemory",
-                                 ["thriftpy/transport/memory/cymemory.c"]))
-    ext_modules.append(Extension("thriftpy.transport.framed.cyframed",
-                                 ["thriftpy/transport/framed/cyframed.c"]))
-    ext_modules.append(Extension("thriftpy.protocol.cybin",
-                                 ["thriftpy/protocol/cybin/cybin.c"]))
 
 setup(name="thriftpy",
       version=version,
@@ -83,8 +48,6 @@ setup(name="thriftpy",
           "dev": dev_requires,
           "tornado": tornado_requires
       },
-      cmdclass=cmdclass,
-      ext_modules=ext_modules,
       classifiers=[
           "Topic :: Software Development",
           "Development Status :: 4 - Beta",
