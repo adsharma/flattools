@@ -208,8 +208,10 @@ def p_type(p):
             | '[' type ']'
             | IDENTIFIER'''
     if len(p) == 4:
-        # XXX: Save vector=true somewhere
-        p[0] = '[%s]' % p[2]
+        if (isinstance(p[2], int)):
+            p[0] = '[%s]' % FBSType._VALUES_TO_NAMES[p[2]]
+        else:
+            p[0] = '[%s]' % p[2]
     else:
         p[0] = p[1]
 
