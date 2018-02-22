@@ -233,12 +233,20 @@ def p_simple_base_type(p):  # noqa
         p[0] = FBSType.BOOL
     elif p[1].upper() == 'BYTE':
         p[0] = FBSType.BYTE
+    elif p[1].upper() == 'UBYTE':
+        p[0] = FBSType.UBYTE
     elif p[1].upper() == 'SHORT':
         p[0] = FBSType.SHORT
+    elif p[1].upper() == 'USHORT':
+        p[0] = FBSType.USHORT
     elif p[1].upper() == 'INT':
         p[0] = FBSType.INT
+    elif p[1].upper() == 'UINT':
+        p[0] = FBSType.UINT
     elif p[1].upper() == 'LONG':
         p[0] = FBSType.LONG
+    elif p[1].upper() == 'ULONG':
+        p[0] = FBSType.ULONG
     elif p[1].upper() == 'FLOAT':
         p[0] = FBSType.FLOAT
     elif p[1].upper() == 'DOUBLE':
