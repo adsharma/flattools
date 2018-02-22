@@ -168,7 +168,8 @@ def p_table(p):
 
 def p_union(p):
     '''union : UNION IDENTIFIER metadata '{' enum_seq '}' '''
-    val = _make_enum(p[2], p[5])
+    val = _make_enum(p[2], FBSType.UNION, p[5])
+    # TODO: check if enum_seq has initializers and raise errors
     setattr(fbs_stack[-1], p[1], val)
     _add_fbs_meta('unions', val)
 
