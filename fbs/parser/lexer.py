@@ -3,6 +3,7 @@
 
 
 from .exc import FbsLexerError
+from ply.lex import TOKEN
 
 
 literals = ':;,=*{}()<>[]'
@@ -56,61 +57,49 @@ def t_error(t):
                            (t.value[0], t.lineno))
 
 
+@TOKEN(r'\n+')
 def t_newline(t):
-    r'\n+'
     t.lexer.lineno += len(t.value)
 
-
+@TOKEN(r'\/\*\**\*\/')
 def t_ignore_SILLYCOMM(t):
-    r'\/\*\**\*\/'
     t.lexer.lineno += t.value.count('\n')
 
-
+@TOKEN(r'\/\*[^*]\/*([^*/]|[^*]\/|\*[^/])*\**\*\/')
 def t_ignore_MULTICOMM(t):
-    r'\/\*[^*]\/*([^*/]|[^*]\/|\*[^/])*\**\*\/'
     t.lexer.lineno += t.value.count('\n')
 
-
+@TOKEN(r'\/\*\*([^*/]|[^*]\/|\*[^/])*\**\*\/')
 def t_ignore_DOCTEXT(t):
-    r'\/\*\*([^*/]|[^*]\/|\*[^/])*\**\*\/'
     t.lexer.lineno += t.value.count('\n')
 
+t_ignore_UNIXCOMMENT = r'\#[^\n]*'
 
-def t_ignore_UNIXCOMMENT(t):
-    r'\#[^\n]*'
+t_ignore_COMMENT = r'\/\/[^\n]*'
 
-
-def t_ignore_COMMENT(t):
-    r'\/\/[^\n]*'
-
-
+@TOKEN(r'\btrue\b|\bfalse\b')
 def t_BOOLCONSTANT(t):
-    r'\btrue\b|\bfalse\b'
     t.value = t.value == 'true'
     return t
 
-
+@TOKEN(r'-?\d+\.\d*(e-?\d+)?')
 def t_DUBCONSTANT(t):
-    r'-?\d+\.\d*(e-?\d+)?'
     t.value = float(t.value)
     return t
 
-
+@TOKEN(r'0x[0-9A-Fa-f]+')
 def t_HEXCONSTANT(t):
-    r'0x[0-9A-Fa-f]+'
     t.value = int(t.value, 16)
     t.type = 'INTCONSTANT'
     return t
 
-
+@TOKEN(r'[+-]?[0-9]+')
 def t_INTCONSTANT(t):
-    r'[+-]?[0-9]+'
     t.value = int(t.value)
     return t
 
-
+@TOKEN(r'(\"([^\\\n]|(\\.))*?\")|\'([^\\\n]|(\\.))*?\'')
 def t_LITERAL(t):
-    r'(\"([^\\\n]|(\\.))*?\")|\'([^\\\n]|(\\.))*?\''
     s = t.value[1:-1]
     maps = {
         't': '\t',
@@ -139,10 +128,8 @@ def t_LITERAL(t):
     t.value = val
     return t
 
-
+@TOKEN(r'[a-zA-Z_](\.[a-zA-Z_0-9]|[a-zA-Z_0-9])*')
 def t_IDENTIFIER(t):
-    r'[a-zA-Z_](\.[a-zA-Z_0-9]|[a-zA-Z_0-9])*'
-
     if t.value in keywords:
         t.type = t.value.upper()
         return t
