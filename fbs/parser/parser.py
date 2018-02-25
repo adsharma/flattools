@@ -209,7 +209,7 @@ def p_type(p):
             | IDENTIFIER'''
     if len(p) == 4:
         if (isinstance(p[2], int)):
-            p[0] = '[%s]' % FBSType._VALUES_TO_NAMES[p[2]]
+            p[0] = '[%s]' % FBSType._VALUES_TO_NAMES[p[2]].lower()
         else:
             p[0] = '[%s]' % p[2]
     else:
