@@ -29,7 +29,7 @@ struct Vec3 (force_align: 16) {
   test3:Test;
 }
 
-table Stat {
+table Stat (BaseStat) {
   id:string;
   id1:[string];
   val:long;

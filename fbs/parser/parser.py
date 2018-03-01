@@ -156,14 +156,14 @@ def p_struct(p):
     '''struct : STRUCT IDENTIFIER metadata '{' field_seq '}' '''
     val = _make_empty_struct(p[2])
     setattr(fbs_stack[-1], p[1], val)
-    val = _fill_in_struct(val, p[5])
+    val = _fill_in_struct(val, p[5], p[3])
     _add_fbs_meta('structs', val)
 
 def p_table(p):
     '''table : TABLE IDENTIFIER metadata '{' field_seq '}' '''
     val = _make_empty_struct(p[2])
     setattr(fbs_stack[-1], p[1], val)
-    val = _fill_in_struct(val, p[5])
+    val = _fill_in_struct(val, p[5], p[3])
     _add_fbs_meta('tables', val)
 
 def p_union(p):
@@ -558,7 +558,7 @@ def _make_empty_struct(name, FBSType=FBSType.STRUCT, base_cls=FBSPayload):
     return type(name, (base_cls, ), attrs)
 
 
-def _fill_in_struct(cls, fields, _gen_init=True):
+def _fill_in_struct(cls, fields, attrs, _gen_init=True):
     # XXX: Is fbs_spec needed, since flatbuffers don't have field order?
     fbs_spec = collections.OrderedDict()
     default_spec = []
@@ -590,6 +590,7 @@ def _fill_in_struct(cls, fields, _gen_init=True):
     setattr(cls, 'default_spec', default_spec)
     setattr(cls, '_fspec', _fspec)
     setattr(cls, 'meta', meta)
+    setattr(cls, 'attributes', attrs)
     if _gen_init:
         gen_init(cls, fbs_spec, default_spec)
     return cls
@@ -598,7 +599,7 @@ def _fill_in_struct(cls, fields, _gen_init=True):
 def _make_struct(name, fields, FBSType=FBSType.STRUCT, base_cls=FBSPayload,
                  _gen_init=True):
     cls = _make_empty_struct(name, FBSType=FBSType, base_cls=base_cls)
-    return _fill_in_struct(cls, fields, _gen_init=_gen_init)
+    return _fill_in_struct(cls, fields, None, _gen_init=_gen_init)
 
 def _fbstype_spec(fbstype, name, required=False):
     return fbstype, name, required

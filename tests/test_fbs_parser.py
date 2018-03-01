@@ -23,6 +23,7 @@ def test_monsters():
 
     stats = fbs.__fbs_meta__['tables'][2]
     assert stats._fspec['id1'] == (False, "[string]", [])
+    assert stats.attributes == [["BaseStat"]]
 
 def test_thrift2fbs():
     fbs = load('parser-cases/thrift2fbs.fbs')
