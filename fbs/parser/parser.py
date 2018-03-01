@@ -316,7 +316,8 @@ def parse(path, module_name=None, include_dirs=None, include_dir=None,
     if lexer is None:
         lexer = lex.lex()
     if parser is None:
-        parser = yacc.yacc(debug=False, write_tables=0)
+        parser = yacc.yacc(optimize=1, write_tables=False, debug=False,
+                           tabmodule="fbs.parser.parsetab")
 
     global include_dirs_
 
@@ -395,7 +396,8 @@ def parse_fp(source, module_name, lexer=None, parser=None, enable_cache=True,
     if lexer is None:
         lexer = lex.lex()
     if parser is None:
-        parser = yacc.yacc(debug=False, write_tables=0)
+        parser = yacc.yacc(optimize=1, write_tables=False, debug=False,
+                           tabmodule="fbs.parser.parsetab")
 
     data = source.read()
 
