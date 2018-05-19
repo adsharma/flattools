@@ -67,6 +67,7 @@ def p_body(p):
             | file_identifier
             | attribute
             | object
+            | rpc_service
             |'''
 
 def p_namespace(p):
@@ -172,6 +173,16 @@ def p_union(p):
     # TODO: check if enum_seq has initializers and raise errors
     setattr(fbs_stack[-1], p[1], val)
     _add_fbs_meta('unions', val)
+
+def p_rpc_service(p):
+    '''rpc_service : RPC_SERVICE IDENTIFIER '{' rpc_method_seq '}' '''
+
+def p_rpc_method_seq(p):
+    '''rpc_method_seq : rpc_method rpc_method_seq
+                      |'''
+
+def p_rpc_method(p):
+    '''rpc_method : IDENTIFIER '(' IDENTIFIER ')' ':' IDENTIFIER metadata ';' '''
 
 def p_field_seq(p):
     '''field_seq : field field_seq

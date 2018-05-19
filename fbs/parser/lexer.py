@@ -37,6 +37,7 @@ keywords = (
     'string',
     'file_extension',
     'file_identifier',
+    'rpc_service',
 )
 
 
