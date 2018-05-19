@@ -8,7 +8,7 @@ import sys
 import traceback
 
 from fbs.fbs import FBSType
-from fbs.parser import load, load_fp
+from fbs.parser import load
 from fbs.parser.exc import FbsParserError, FbsGrammerError
 from functools import partial
 from jinja2 import Environment, FileSystemLoader
@@ -31,6 +31,7 @@ GLOBAL_OPTIONS = {
   'trim_blocks' : True,
   'lstrip_blocks' : True,
 }
+
 def generate_cpp(path, tree):
     dirname, filename = os.path.split(os.path.abspath(path))
     env = Environment(loader=FileSystemLoader(['.', dirname]), **GLOBAL_OPTIONS)
@@ -63,16 +64,18 @@ def generate_yaml(path, tree):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument("--includes", action='store', nargs='+', help="Directories to search")
     parser.add_argument("--cpp", type=bool, default=False, help="Generate C++ code")
     parser.add_argument("--ijava", type=bool, default=False, help="Generate Java interface code")
     parser.add_argument("--yaml", type=bool, default=True, help="Generate Yaml code")
     # TODO: pass args.sort to parser
     parser.add_argument("--sort", type=bool, default=False, help="Sort everything alphabetically")
     args, rest = parser.parse_known_args()
-    filename = rest[0]
-    if args.cpp:
-        generate_cpp(filename, load(filename))
-    if args.ijava:
-        generate_ijava(filename, load(filename))
-    if args.yaml:
-        generate_yaml(filename, load(filename))
+    for filename in rest:
+        parsed = load(filename, include_dirs=args.includes)
+        if args.cpp:
+            generate_cpp(filename, load(filename))
+        if args.ijava:
+            generate_ijava(filename, load(filename))
+        if args.yaml:
+            generate_yaml(filename, load(filename))
