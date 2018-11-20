@@ -1,5 +1,4 @@
-from thriftpy._compat import with_metaclass
-from thriftpy.thrift import TPayloadMeta
+from fbs._compat import with_metaclass
 
 class FBSType(object):
     BOOL = 0
@@ -95,6 +94,16 @@ class FBSType(object):
         UNION: 'interface',
     }
 
+
+class TPayloadMeta(type):
+
+    def __new__(cls, name, bases, attrs):
+        if "default_spec" in attrs:
+            spec = attrs.pop("default_spec")
+            # attrs["__init__"] = init_func_generator(cls, spec)
+        return super(TPayloadMeta, cls).__new__(cls, name, bases, attrs)
+
+
 class FBSPayload(with_metaclass(TPayloadMeta, object)):
 
     __hash__ = None
@@ -112,3 +121,7 @@ class FBSPayload(with_metaclass(TPayloadMeta, object)):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+
+def gen_init(cls, fbs_spec=None, default_spec=None):
+    return cls

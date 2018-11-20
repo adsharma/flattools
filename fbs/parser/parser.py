@@ -15,9 +15,9 @@ import types
 from ply import lex, yacc
 from .lexer import *  # noqa
 from .exc import FbsParserError, FbsGrammerError
-from thriftpy._compat import urlopen, urlparse
+from fbs._compat import urlopen, urlparse
 from fbs.fbs import FBSType, FBSPayload
-from thriftpy.thrift import gen_init
+from fbs.fbs import gen_init
 
 def p_error(p):
     if p is None:
@@ -287,7 +287,7 @@ def parse(path, module_name=None, include_dirs=None, include_dir=None,
           lexer=None, parser=None, enable_cache=True, enable_sort=False):
     """Parse a single fbs file to module object, e.g.::
 
-        >>> from thriftpy.parser.parser import parse
+        >>> from fbs.parser.parser import parse
         >>> note_fbs = parse("path/to/note.fbs")
         <module 'note_fbs' (built-in)>
 
@@ -350,12 +350,12 @@ def parse(path, module_name=None, include_dirs=None, include_dir=None,
     elif url_scheme in ('http', 'https'):
         data = urlopen(path).read()
     else:
-        raise FbsParserError('thriftpy does not support generating module '
+        raise FbsParserError('flattools does not support generating module '
                                 'with path in protocol \'{}\''.format(
                                     url_scheme))
 
     if module_name is not None and not module_name.endswith('_fbs'):
-        raise FbsParserError('thriftpy can only generate module with '
+        raise FbsParserError('flattools can only generate module with '
                                 '\'_fbs\' suffix')
 
     if module_name is None:
@@ -380,7 +380,7 @@ def parse_fp(source, module_name, lexer=None, parser=None, enable_cache=True,
              enable_sort=False):
     """Parse a file-like object to fbs module object, e.g.::
 
-        >>> from thriftpy.fbs.parser.parser import parse_fp
+        >>> from fbs.fbs.parser.parser import parse_fp
         >>> with open("path/to/note.fbs") as fp:
                 parse_fp(fp, "note_fbs")
         <module 'note_fbs' (built-in)>

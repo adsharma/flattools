@@ -10,7 +10,7 @@ from os.path import join, dirname
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
 
-with open(join(dirname(__file__), 'thriftpy', '__init__.py'), 'r') as f:
+with open(join(dirname(__file__), 'fbs', '__init__.py'), 'r') as f:
     version = re.match(r".*__version__ = '(.*?)'", f.read(), re.S).group(1)
 
 install_requires = [
@@ -28,7 +28,7 @@ setup(name="flattools",
       keywords="flatbuffers python thriftpy",
       author="Arun Sharma",
       author_email="asharma@fb.com",
-      packages=find_packages(exclude=['benchmark', 'docs', 'tests']),
+      packages=find_packages(exclude=['docs', 'tests']),
       package_data={"flattools": ["contrib/tracking/tracking.thrift"]},
       entry_points={},
       url="https://github.com/adsharma/flattools",

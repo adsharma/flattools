@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-    thriftpy._compat
+    fbs._compat
     ~~~~~~~~~~~~~
 
     py2/py3 compatibility support.
