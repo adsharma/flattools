@@ -67,7 +67,7 @@ def main():
     parser.add_argument("--includes", action='store', nargs='+', help="Directories to search")
     parser.add_argument("--cpp", type=bool, default=False, help="Generate C++ code")
     parser.add_argument("--ijava", type=bool, default=False, help="Generate Java interface code")
-    parser.add_argument("--yaml", type=bool, default=True, help="Generate Yaml code")
+    parser.add_argument("--yaml", type=bool, default=False, help="Generate Yaml code")
     # TODO: pass args.sort to parser
     parser.add_argument("--sort", type=bool, default=False, help="Sort everything alphabetically")
     args, rest = parser.parse_known_args()
