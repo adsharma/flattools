@@ -62,7 +62,7 @@ def generate_yaml(path, tree):
     setattr(tree, 'get_type', partial(get_type, primitive=tree.yaml_types, module=tree))
     target.write(env.get_template(YAML_TEMPLATE).render(tree.__dict__))
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--includes", action='store', nargs='+', help="Directories to search")
     parser.add_argument("--cpp", type=bool, default=False, help="Generate C++ code")
@@ -79,3 +79,6 @@ if __name__ == '__main__':
             generate_ijava(filename, load(filename))
         if args.yaml:
             generate_yaml(filename, load(filename))
+
+if __name__ == '__main__':
+    main()
