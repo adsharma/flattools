@@ -32,35 +32,35 @@ GLOBAL_OPTIONS = {
   'lstrip_blocks' : True,
 }
 
-def generate_cpp(path, tree):
+def pre_generate_step(path):
     dirname, filename = os.path.split(os.path.abspath(path))
     env = Environment(loader=FileSystemLoader(['.', dirname]), **GLOBAL_OPTIONS)
     prefix, extension = os.path.splitext(filename)
+    return (prefix, env)
+
+def generate_cpp(path, tree):
+    (prefix, env) = pre_generate_step(path)
     out_file = prefix + '_generated.h'
-    target = open(out_file, 'w')
-    setattr(tree, 'cpp_types', FBSType._VALUES_TO_CPP_TYPES)
-    setattr(tree, 'get_type', partial(get_type, primitive=tree.cpp_types, module=tree))
-    target.write(env.get_template(CPP_TEMPLATE).render(tree.__dict__))
+    with open(out_file, 'w') as target:
+        setattr(tree, 'cpp_types', FBSType._VALUES_TO_CPP_TYPES)
+        setattr(tree, 'get_type', partial(get_type, primitive=tree.cpp_types, module=tree))
+        target.write(env.get_template(CPP_TEMPLATE).render(tree.__dict__))
 
 def generate_ijava(path, tree):
-    dirname, filename = os.path.split(os.path.abspath(path))
-    env = Environment(loader=FileSystemLoader(['.', dirname]), **GLOBAL_OPTIONS)
-    prefix, extension = os.path.splitext(filename)
+    (prefix, env) = pre_generate_step(path)
     out_file = 'I' + prefix + '.java'
-    target = open(out_file, 'w')
-    setattr(tree, 'java_types', FBSType._VALUES_TO_JAVA_TYPES)
-    setattr(tree, 'get_type', partial(get_type, primitive=tree.java_types, module=tree))
-    target.write(env.get_template(IJAVA_TEMPLATE).render(tree.__dict__))
+    with open(out_file, 'w') as target:
+        setattr(tree, 'java_types', FBSType._VALUES_TO_JAVA_TYPES)
+        setattr(tree, 'get_type', partial(get_type, primitive=tree.java_types, module=tree))
+        target.write(env.get_template(IJAVA_TEMPLATE).render(tree.__dict__))
 
 def generate_yaml(path, tree):
-    dirname, filename = os.path.split(os.path.abspath(path))
-    env = Environment(loader=FileSystemLoader(['.', dirname]), **GLOBAL_OPTIONS)
-    prefix, extension = os.path.splitext(filename)
+    (prefix, env) = pre_generate_step(path)
     out_file = prefix + '.yaml'
-    target = open(out_file, 'w')
-    setattr(tree, 'yaml_types', FBSType._VALUES_TO_NAMES_LOWER)
-    setattr(tree, 'get_type', partial(get_type, primitive=tree.yaml_types, module=tree))
-    target.write(env.get_template(YAML_TEMPLATE).render(tree.__dict__))
+    with open(out_file, 'w') as target:
+        setattr(tree, 'yaml_types', FBSType._VALUES_TO_NAMES_LOWER)
+        setattr(tree, 'get_type', partial(get_type, primitive=tree.yaml_types, module=tree))
+        target.write(env.get_template(YAML_TEMPLATE).render(tree.__dict__))
 
 def main():
     parser = argparse.ArgumentParser()
