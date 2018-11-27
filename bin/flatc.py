@@ -16,6 +16,7 @@ from jinja2 import Environment, FileSystemLoader
 CPP_TEMPLATE='fbs_template_cpp.h'
 IJAVA_TEMPLATE='fbs_template_interface.java'
 YAML_TEMPLATE='fbs_template_yaml.yaml'
+PYTHON_TEMPLATE='fbs_template.py'
 
 def get_type(name, module, primitive):
     try:
@@ -62,12 +63,21 @@ def generate_yaml(path, tree):
         setattr(tree, 'get_type', partial(get_type, primitive=tree.yaml_types, module=tree))
         target.write(env.get_template(YAML_TEMPLATE).render(tree.__dict__))
 
+def generate_py(path, tree):
+    (prefix, env) = pre_generate_step(path)
+    out_file = prefix + '.py'
+    with open(out_file, 'w') as target:
+        setattr(tree, 'python_types', FBSType._VALUES_TO_PY_TYPES)
+        setattr(tree, 'get_type', partial(get_type, primitive=tree.python_types, module=tree))
+        target.write(env.get_template(PYTHON_TEMPLATE).render(tree.__dict__))
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--includes", action='store', nargs='+', help="Directories to search")
     parser.add_argument("--cpp", type=bool, default=False, help="Generate C++ code")
     parser.add_argument("--ijava", type=bool, default=False, help="Generate Java interface code")
     parser.add_argument("--yaml", type=bool, default=False, help="Generate Yaml code")
+    parser.add_argument("--python", type=bool, default=False, help="Generate Python code")
     # TODO: pass args.sort to parser
     parser.add_argument("--sort", type=bool, default=False, help="Sort everything alphabetically")
     args, rest = parser.parse_known_args()
@@ -79,6 +89,8 @@ def main():
             generate_ijava(filename, load(filename))
         if args.yaml:
             generate_yaml(filename, load(filename))
+        if args.python:
+            generate_py(filename, load(filename))
 
 if __name__ == '__main__':
     main()
