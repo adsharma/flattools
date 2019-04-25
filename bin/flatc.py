@@ -65,11 +65,15 @@ def generate_yaml(path, tree):
 
 def generate_py(path, tree):
     (prefix, env) = pre_generate_step(path)
-    out_file = prefix + '.py'
-    with open(out_file, 'w') as target:
-        setattr(tree, 'python_types', FBSType._VALUES_TO_PY_TYPES)
-        setattr(tree, 'get_type', partial(get_type, primitive=tree.python_types, module=tree))
-        target.write(env.get_template(PYTHON_TEMPLATE).render(tree.__dict__))
+    if not os.path.exists(prefix):
+        os.mkdir(prefix)
+    for table in tree.__fbs_meta__['tables']:
+        out_file = os.path.join(prefix, table.__name__ + '.py')
+        with open(out_file, 'w') as target:
+            setattr(tree, 'python_types', FBSType._VALUES_TO_PY_TYPES)
+            setattr(tree, 'get_type', partial(get_type, primitive=tree.python_types, module=tree))
+            setattr(tree, 'table', table)
+            target.write(env.get_template(PYTHON_TEMPLATE).render(tree.__dict__))
 
 def main():
     parser = argparse.ArgumentParser()
