@@ -1,5 +1,10 @@
 from fbs._compat import with_metaclass
 
+
+def build_named_set(primitives, names):
+    return {names[v].lower() for v in primitives}
+
+
 class FBSType(object):
     BOOL = 0
     BYTE = 1
@@ -17,6 +22,34 @@ class FBSType(object):
     TABLE = 13
     UNION = 14
     VECTOR = 15
+
+    _NUMBER_TYPES = {
+        BOOL,
+        BYTE,
+        UBYTE,
+        SHORT,
+        USHORT,
+        INT,
+        UINT,
+        FLOAT,
+        LONG,
+        ULONG,
+        DOUBLE,
+    }
+
+    _BITS = {
+        BOOL : 1,
+        BYTE : 8,
+        UBYTE : 8,
+        SHORT : 16,
+        USHORT : 16,
+        INT : 32,
+        UINT : 32,
+        FLOAT : 32,
+        LONG : 64,
+        ULONG : 64,
+        DOUBLE : 64,
+    }
 
     _VALUES_TO_NAMES = {
         BOOL :'BOOL',
@@ -39,6 +72,10 @@ class FBSType(object):
     _VALUES_TO_NAMES_LOWER = {
       k : v.lower() for k, v in _VALUES_TO_NAMES.items()
     }
+
+    _PRIMITIVE_TYPES = _NUMBER_TYPES.union({STRING})
+
+    _PRIMITIVE_TYPES_NAMES = build_named_set(_PRIMITIVE_TYPES, _VALUES_TO_NAMES)
 
     _VALUES_TO_CPP_TYPES = {
         BOOL :'bool',

@@ -12,6 +12,7 @@ from fbs.parser import load
 from fbs.parser.exc import FbsParserError, FbsGrammerError
 from functools import partial
 from jinja2 import Environment, FileSystemLoader
+from typing import Optional, Tuple
 
 CPP_TEMPLATE='fbs_template_cpp.h'
 IJAVA_TEMPLATE='fbs_template_interface.java'
@@ -27,6 +28,19 @@ def get_type(name, module, primitive):
                 if t.__name__ == name:
                     return t.__name__
         return name
+
+def parse_types(fbs_type, py_type) -> Tuple[bool, int, bool, Optional[FBSType], bool]:
+    number_type = fbs_type in FBSType._NUMBER_TYPES
+    bits = FBSType._BITS[fbs_type] if number_type else 0
+    if py_type.startswith("["):
+        primitive_type = False
+        element_type = py_type[1:-1]
+        element_type_primitive = element_type in FBSType._PRIMITIVE_TYPES_NAMES
+    else:
+        element_type = None
+        element_type_primitive = False
+        primitive_type = True
+    return (number_type, bits, primitive_type, element_type, element_type_primitive)
 
 def camel_case(text: str) -> str:
     return ''.join([x.title() for x in text.split('_')])
@@ -78,6 +92,7 @@ def generate_py(path, tree):
             setattr(tree, 'get_type', partial(get_type, primitive=tree.python_types, module=tree))
             setattr(tree, 'table', table)
             setattr(tree, 'camel_case', camel_case)
+            setattr(tree, "parse_types", parse_types)
             target.write(env.get_template(PYTHON_TEMPLATE).render(tree.__dict__))
 
 def main():
