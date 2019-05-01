@@ -12,6 +12,7 @@ from fbs.parser import load
 from fbs.parser.exc import FbsParserError, FbsGrammerError
 from functools import partial
 from jinja2 import Environment, FileSystemLoader
+from keyword import kwlist
 from typing import Optional, Tuple
 
 CPP_TEMPLATE='fbs_template_cpp.h'
@@ -90,6 +91,7 @@ def generate_py(path, tree, templates=[PYTHON_TEMPLATE, None, None]):
     setattr(tree, 'get_type', partial(get_type, primitive=tree.python_types, module=tree))
     setattr(tree, 'camel_case', camel_case)
     setattr(tree, "parse_types", parse_types)
+    setattr(tree, "python_reserved", kwlist)
     for table in tree.__fbs_meta__['tables']:
         out_file = os.path.join(prefix, table.__name__ + '.py')
         with open(out_file, 'w') as target:
