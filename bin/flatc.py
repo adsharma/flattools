@@ -28,6 +28,9 @@ def get_type(name, module, primitive):
                     return t.__name__
         return name
 
+def camel_case(text: str) -> str:
+    return ''.join([x.title() for x in text.split('_')])
+
 GLOBAL_OPTIONS = {
   'trim_blocks' : True,
   'lstrip_blocks' : True,
@@ -67,12 +70,14 @@ def generate_py(path, tree):
     (prefix, env) = pre_generate_step(path)
     if not os.path.exists(prefix):
         os.mkdir(prefix)
+        open(os.path.join(prefix, '__init__.py'), "a").close()
     for table in tree.__fbs_meta__['tables']:
         out_file = os.path.join(prefix, table.__name__ + '.py')
         with open(out_file, 'w') as target:
             setattr(tree, 'python_types', FBSType._VALUES_TO_PY_TYPES)
             setattr(tree, 'get_type', partial(get_type, primitive=tree.python_types, module=tree))
             setattr(tree, 'table', table)
+            setattr(tree, 'camel_case', camel_case)
             target.write(env.get_template(PYTHON_TEMPLATE).render(tree.__dict__))
 
 def main():
