@@ -131,6 +131,24 @@ class FBSType(object):
         UNION: 'interface',
     }
 
+    _VALUES_TO_PY_C_TYPES = {
+        BOOL: 'bool',
+        BYTE: 'int8',
+        UBYTE: 'uint8',
+        SHORT: 'int16',
+        USHORT: 'uint16',
+        INT: 'int32',
+        UINT: 'uint32',
+        FLOAT: 'float32',
+        LONG: 'int64',
+        ULONG: 'uint16',
+        DOUBLE: 'float64',
+        STRING: 'int',
+        STRUCT: 'int',
+        TABLE: 'int',
+        UNION: 'int',
+    }
+
 
 class TPayloadMeta(type):
 

@@ -43,6 +43,32 @@ def parse_types(fbs_type, py_type) -> Tuple[bool, int, bool, Optional[FBSType], 
         primitive_type = py_type in FBSType._PRIMITIVE_TYPES_NAMES
     return (number_type, bits, primitive_type, element_type, element_type_primitive)
 
+# Should be compatible with GenTypeBasic() upstream
+def py_gen_type(fbs_type) -> str:
+    return FBSType._VALUES_TO_PY_C_TYPES[fbs_type]
+
+# Should be compatible with GenMethod() upstream
+def py_gen_method(fbs_type) -> str:
+    is_primitive = fbs_type in FBSType._PRIMITIVE_TYPES
+    if is_primitive:
+        return camel_case(py_gen_type(fbs_type))
+    elif fbs_type == FBSType.STRUCT:
+        return "Struct"
+    else:
+        return "UOffsetTRelative"
+
+# Similar to, but not compatible with GenGetter() upstream
+def py_gen_getter(fbs_type) -> Tuple[str, Tuple]:
+    if fbs_type == FBSType.STRING:
+        return ("String", ())
+    elif fbs_type == FBSType.UNION:
+        return ("Get", ("flatbuffers.number_types.{}Flags".format("Int8"),))
+    elif fbs_type == FBSType.VECTOR:
+        _, _, _, element_type, _ = parse_types(fbs_type, get_type(fbs_type))
+        return ("Get", ("flatbuffers.number_types.{}Flags".format(camel_case(py_gen_type(element_type))),))
+    else:
+        return ("Get", ("flatbuffers.number_types.{}Flags".format(camel_case(py_gen_type(fbs_type))),))
+
 def camel_case(text: str) -> str:
     return ''.join([x.title() for x in text.split('_')])
 
@@ -90,8 +116,12 @@ def generate_py(path, tree, templates=[PYTHON_TEMPLATE, None, None]):
     setattr(tree, 'python_types', FBSType._VALUES_TO_PY_TYPES)
     setattr(tree, 'get_type', partial(get_type, primitive=tree.python_types, module=tree))
     setattr(tree, 'camel_case', camel_case)
-    setattr(tree, "parse_types", parse_types)
-    setattr(tree, "python_reserved", kwlist)
+    setattr(tree, 'parse_types', parse_types)
+    setattr(tree, 'python_reserved', kwlist)
+    setattr(tree, 'py_gen_type', py_gen_type)
+    setattr(tree, 'py_gen_method', py_gen_method)
+    setattr(tree, 'py_gen_getter', py_gen_getter)
+    setattr(tree, 'FBSType', FBSType)
     for table in tree.__fbs_meta__['tables']:
         out_file = os.path.join(prefix, table.__name__ + '.py')
         with open(out_file, 'w') as target:
