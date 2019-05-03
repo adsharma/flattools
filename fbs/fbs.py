@@ -73,6 +73,10 @@ class FBSType(object):
       k : v.lower() for k, v in _VALUES_TO_NAMES.items()
     }
 
+    _LOWER_NAMES_TO_VALUES = {
+      v.lower() : k for k, v in _VALUES_TO_NAMES.items()
+    }
+
     _PRIMITIVE_TYPES = _NUMBER_TYPES.union({STRING})
 
     _PRIMITIVE_TYPES_NAMES = build_named_set(_PRIMITIVE_TYPES, _VALUES_TO_NAMES)
@@ -115,8 +119,8 @@ class FBSType(object):
 
     _VALUES_TO_PY_TYPES = {
         BOOL: 'bool',
-        BYTE: 'bytes',
-        UBYTE: 'bytes',
+        BYTE: 'int',
+        UBYTE: 'int',
         SHORT: 'int',
         USHORT: 'int',
         INT: 'int',
