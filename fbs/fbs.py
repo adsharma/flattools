@@ -22,6 +22,9 @@ class FBSType(object):
     TABLE = 13
     UNION = 14
     VECTOR = 15
+    # Special type not defined upstream, but used
+    # to distinguish enums from unions
+    ENUM = 100
 
     _NUMBER_TYPES = {
         BOOL,
@@ -66,7 +69,9 @@ class FBSType(object):
         STRING :'STRING',
         STRUCT : 'STRUCT',
         TABLE : 'TABLE',
-        UNION : 'UNION'
+        UNION : 'UNION',
+        VECTOR: 'VECTOR',
+        ENUM: 'ENUM'
     }
 
     _VALUES_TO_NAMES_LOWER = {
@@ -96,7 +101,9 @@ class FBSType(object):
         STRING :'std::string',
         STRUCT : 'struct',
         TABLE : 'struct',
-        UNION : 'union'
+        UNION : 'union',
+        VECTOR: 'vector_t',
+        ENUM: 'enum',
     }
 
     _VALUES_TO_JAVA_TYPES = {
@@ -115,6 +122,8 @@ class FBSType(object):
         STRUCT: 'interface',
         TABLE: 'interface',
         UNION: 'interface',
+        VECTOR: 'interface',
+        ENUM: 'interface',
     }
 
     _VALUES_TO_PY_TYPES = {
@@ -133,6 +142,8 @@ class FBSType(object):
         STRUCT: 'interface',
         TABLE: 'interface',
         UNION: 'interface',
+        VECTOR: 'interface',
+        ENUM: 'interface',
     }
 
     _VALUES_TO_PY_C_TYPES = {
@@ -151,6 +162,8 @@ class FBSType(object):
         STRUCT: 'int',
         TABLE: 'int',
         UNION: 'int',
+        VECTOR: 'int',
+        ENUM: 'int',
     }
 
 

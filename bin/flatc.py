@@ -43,6 +43,22 @@ def parse_types(fbs_type, py_type) -> Tuple[bool, int, bool, Optional[FBSType], 
         primitive_type = py_type in FBSType._PRIMITIVE_TYPES_NAMES
     return (number_type, bits, primitive_type, element_type, element_type_primitive)
 
+_NAMESPACE_TO_TYPE = {
+    'tables': FBSType.TABLE,
+    'structs': FBSType.STRUCT,
+    'enums': FBSType.ENUM,
+    'unions': FBSType.UNION,
+}
+
+def lookup_fbs_type(module, fbs_type) -> Optional[FBSType]:
+    """For complex types, check if something is a struct,
+       table, union or an enum"""
+    for namespace in _NAMESPACE_TO_TYPE.keys():
+        for t in module.__fbs_meta__[namespace]:
+            if t.__name__ == fbs_type:
+                return _NAMESPACE_TO_TYPE[namespace]
+    return None
+
 # Should be compatible with GenTypeBasic() upstream
 def py_gen_type(fbs_type) -> str:
     return FBSType._VALUES_TO_PY_C_TYPES[fbs_type]
@@ -61,7 +77,7 @@ def py_gen_method(fbs_type) -> str:
 def py_gen_getter(fbs_type) -> Tuple[str, Tuple]:
     if fbs_type == FBSType.STRING:
         return ("String", ())
-    elif fbs_type == FBSType.UNION:
+    elif fbs_type == FBSType.UNION or fbs_type == FBSType.ENUM:
         return ("Get", ("flatbuffers.number_types.{}Flags".format("Int8"),))
     elif fbs_type == FBSType.VECTOR:
         _, _, _, element_type, _ = parse_types(fbs_type, get_type(fbs_type))
@@ -113,15 +129,20 @@ def generate_py(path, tree, templates=[PYTHON_TEMPLATE, None, None]):
         os.mkdir(prefix)
         open(os.path.join(prefix, '__init__.py'), "a").close()
     table_template, union_template, enum_template = templates
+    setattr(tree, 'module', tree)
+    # Type related methods
+    setattr(tree, 'FBSType', FBSType)
     setattr(tree, 'python_types', FBSType._VALUES_TO_PY_TYPES)
     setattr(tree, 'get_type', partial(get_type, primitive=tree.python_types, module=tree))
-    setattr(tree, 'camel_case', camel_case)
+    setattr(tree, 'lookup_fbs_type', lookup_fbs_type)
     setattr(tree, 'parse_types', parse_types)
+    # Strings
+    setattr(tree, 'camel_case', camel_case)
     setattr(tree, 'python_reserved', kwlist)
+    # Python specific
     setattr(tree, 'py_gen_type', py_gen_type)
     setattr(tree, 'py_gen_method', py_gen_method)
     setattr(tree, 'py_gen_getter', py_gen_getter)
-    setattr(tree, 'FBSType', FBSType)
     for table in tree.__fbs_meta__['tables']:
         out_file = os.path.join(prefix, table.__name__ + '.py')
         with open(out_file, 'w') as target:
