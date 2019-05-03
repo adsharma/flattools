@@ -438,6 +438,12 @@ def _add_fbs_meta(key, val):
     meta[key].append(val)
 
 
+def _get_fbs_meta(key):
+    fbs = fbs_stack[-1]
+    meta = getattr(fbs, '__fbs_meta__', None)
+    return meta[key] if meta else None
+
+
 def _parse_seq(p):
     if len(p) == 4:
         p[0] = [p[1]] + p[3]
@@ -570,6 +576,12 @@ def _make_empty_struct(name, FBSType=FBSType.STRUCT, base_cls=FBSPayload):
     attrs = {'__module__': fbs_stack[-1].__name__, '_FBSType': FBSType}
     return type(name, (base_cls, ), attrs)
 
+def check_enum(ftype, classes) -> bool:
+    "Check if ftype is in the list of classes"
+    for c in classes:
+        if c.__name__ == ftype:
+            return True
+    return False
 
 def _fill_in_struct(cls, fields, attrs, _gen_init=True):
     # XXX: Is fbs_spec needed, since flatbuffers don't have field order?
@@ -590,6 +602,11 @@ def _fill_in_struct(cls, fields, attrs, _gen_init=True):
         if name in _fspec:
             raise FbsGrammerError(('\'%s\' field identifier/name has '
                                       'already been used') % (name))
+        if check_enum(ftype, _get_fbs_meta('unions')):
+            type_accessor = name + '_type'
+            fbs_spec[type_accessor] = _fbstype_spec(ftype, type_accessor, required)
+            default_spec.append((type_accessor, None))
+            _fspec[type_accessor] = required, FBSType.UBYTE, None
         fbs_spec[name] = _fbstype_spec(ftype, name, required)
         default_spec.append((name, value))
         _fspec[name] = required, ftype, metadata
