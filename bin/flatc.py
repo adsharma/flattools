@@ -40,7 +40,7 @@ def parse_types(fbs_type, py_type) -> Tuple[bool, int, bool, Optional[FBSType], 
     else:
         element_type = None
         element_type_primitive = False
-        primitive_type = py_type in FBSType._PRIMITIVE_TYPES_NAMES
+        primitive_type = fbs_type in FBSType._PRIMITIVE_TYPES
     return (number_type, bits, primitive_type, element_type, element_type_primitive)
 
 _NAMESPACE_TO_TYPE = {
