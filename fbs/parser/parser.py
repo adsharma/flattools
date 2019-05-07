@@ -578,6 +578,8 @@ def _make_empty_struct(name, FBSType=FBSType.STRUCT, base_cls=FBSPayload):
 
 def check_enum(ftype, classes) -> bool:
     "Check if ftype is in the list of classes"
+    if not classes:
+        return False
     for c in classes:
         if c.__name__ == ftype:
             return True
