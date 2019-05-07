@@ -28,6 +28,9 @@ def get_type(name, module, primitive):
             for t in module.__fbs_meta__[namespace]:
                 if t.__name__ == name:
                     return t.__name__
+        if name.startswith("["):
+            element_type = get_type(name[1:-1], module, module.FBSType._LOWER_NAMES_TO_VALUES)
+            return '[{}]'.format(get_type(element_type, module, primitive))
         return name
 
 def parse_types(fbs_type, py_type) -> Tuple[bool, int, bool, Optional[FBSType], bool]:
@@ -102,6 +105,7 @@ def pre_generate_step(path):
 def generate_cpp(path, tree, template=CPP_TEMPLATE):
     (prefix, env) = pre_generate_step(path)
     out_file = prefix + '_generated.h'
+    setattr(tree, 'FBSType', FBSType)
     with open(out_file, 'w') as target:
         setattr(tree, 'cpp_types', FBSType._VALUES_TO_CPP_TYPES)
         setattr(tree, 'get_type', partial(get_type, primitive=tree.cpp_types, module=tree))
@@ -110,6 +114,7 @@ def generate_cpp(path, tree, template=CPP_TEMPLATE):
 def generate_ijava(path, tree, template=IJAVA_TEMPLATE):
     (prefix, env) = pre_generate_step(path)
     out_file = 'I' + prefix + '.java'
+    setattr(tree, 'FBSType', FBSType)
     with open(out_file, 'w') as target:
         setattr(tree, 'java_types', FBSType._VALUES_TO_JAVA_TYPES)
         setattr(tree, 'get_type', partial(get_type, primitive=tree.java_types, module=tree))
@@ -118,6 +123,7 @@ def generate_ijava(path, tree, template=IJAVA_TEMPLATE):
 def generate_yaml(path, tree, template=YAML_TEMPLATE):
     (prefix, env) = pre_generate_step(path)
     out_file = prefix + '.yaml'
+    setattr(tree, 'FBSType', FBSType)
     with open(out_file, 'w') as target:
         setattr(tree, 'yaml_types', FBSType._VALUES_TO_NAMES_LOWER)
         setattr(tree, 'get_type', partial(get_type, primitive=tree.yaml_types, module=tree))
