@@ -20,11 +20,18 @@ IJAVA_TEMPLATE='fbs_template_interface.java'
 YAML_TEMPLATE='fbs_template_yaml.yaml'
 PYTHON_TEMPLATE='fbs_template.py'
 
+_NAMESPACE_TO_TYPE = {
+    'tables': FBSType.TABLE,
+    'structs': FBSType.STRUCT,
+    'enums': FBSType.ENUM,
+    'unions': FBSType.UNION,
+}
+
 def get_type(name, module, primitive):
     try:
         return primitive[name]
     except KeyError:
-        for namespace in ('tables', 'enums', 'unions'):
+        for namespace in _NAMESPACE_TO_TYPE.keys():
             for t in module.__fbs_meta__[namespace]:
                 if t.__name__ == name:
                     return t.__name__
@@ -32,6 +39,14 @@ def get_type(name, module, primitive):
             element_type = get_type(name[1:-1], module, module.FBSType._LOWER_NAMES_TO_VALUES)
             return '[{}]'.format(get_type(element_type, module, primitive))
         return name
+
+def get_module_name(name, module):
+    for namespace in _NAMESPACE_TO_TYPE.keys():
+        for mod in [module] + module.__fbs_meta__['includes']:
+            for t in mod.__fbs_meta__[namespace]:
+                if t.__name__ == name:
+                    return t.__module__
+    return None
 
 def parse_types(fbs_type, py_type) -> Tuple[bool, int, bool, Optional[FBSType], bool]:
     number_type = fbs_type in FBSType._NUMBER_TYPES
@@ -46,20 +61,14 @@ def parse_types(fbs_type, py_type) -> Tuple[bool, int, bool, Optional[FBSType], 
         primitive_type = fbs_type in FBSType._PRIMITIVE_TYPES
     return (number_type, bits, primitive_type, element_type, element_type_primitive)
 
-_NAMESPACE_TO_TYPE = {
-    'tables': FBSType.TABLE,
-    'structs': FBSType.STRUCT,
-    'enums': FBSType.ENUM,
-    'unions': FBSType.UNION,
-}
-
 def lookup_fbs_type(module, fbs_type) -> Optional[FBSType]:
     """For complex types, check if something is a struct,
        table, union or an enum"""
     for namespace in _NAMESPACE_TO_TYPE.keys():
-        for t in module.__fbs_meta__[namespace]:
-            if t.__name__ == fbs_type:
-                return _NAMESPACE_TO_TYPE[namespace]
+        for mod in [module] + module.__fbs_meta__['includes']:
+            for t in mod.__fbs_meta__[namespace]:
+                if t.__name__ == fbs_type:
+                    return _NAMESPACE_TO_TYPE[namespace]
     return None
 
 # Should be compatible with GenTypeBasic() upstream
@@ -140,6 +149,7 @@ def generate_py(path, tree, templates=[PYTHON_TEMPLATE, None, None]):
     setattr(tree, 'FBSType', FBSType)
     setattr(tree, 'python_types', FBSType._VALUES_TO_PY_TYPES)
     setattr(tree, 'get_type', partial(get_type, primitive=tree.python_types, module=tree))
+    setattr(tree, 'get_module_name', partial(get_module_name, module=tree))
     setattr(tree, 'lookup_fbs_type', lookup_fbs_type)
     setattr(tree, 'parse_types', parse_types)
     # Strings
