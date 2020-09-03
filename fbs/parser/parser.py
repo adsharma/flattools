@@ -193,7 +193,7 @@ def p_field_seq(p):
 def p_field(p):
     '''field : IDENTIFIER ':' type metadata ';'
              | IDENTIFIER ':' type '=' scalar metadata ';' '''
-    if len(p) == 7:
+    if len(p) == 8:
         try:
             val = _cast(p[3])(p[5])
         except AssertionError:
