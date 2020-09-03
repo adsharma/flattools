@@ -470,10 +470,9 @@ def _cast(t):  # noqa
         return _cast_double
     if t == FBSType.STRING:
         return _cast_string
-    if t[0] == FBSType.I32:
-        return _cast_enum(t)
     if t[0] == FBSType.STRUCT:
         return _cast_struct(t)
+    return _cast_enum
 
 
 def _cast_bool(v):
