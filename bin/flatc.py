@@ -4,6 +4,7 @@
 
 import argparse
 import os
+import re
 import sys
 import traceback
 
@@ -13,7 +14,7 @@ from fbs.parser.exc import FbsParserError, FbsGrammerError
 from functools import partial
 from jinja2 import Environment, FileSystemLoader
 from keyword import kwlist
-from typing import Optional, Tuple
+from typing import Optional, List, Tuple
 
 CPP_TEMPLATE='fbs_template_cpp.h'
 IJAVA_TEMPLATE='fbs_template_interface.java'
@@ -70,6 +71,19 @@ def lookup_fbs_type(module, fbs_type) -> Optional[FBSType]:
                 if t.__name__ == fbs_type:
                     return _NAMESPACE_TO_TYPE[namespace]
     return None
+
+def c_int_types(module) -> List:
+    """Figure out what int types need to be imported from ctypes"""
+    c_types = []
+    for namespace in _NAMESPACE_TO_TYPE.keys():
+        for t in module.__fbs_meta__[namespace]:
+           for _, mtype in t._fspec.items():
+                fbs_type = mtype[1]
+                if fbs_type in FBSType._PRIMITIVE_TYPES:
+                    py_type = FBSType._VALUES_TO_PY_TYPES[fbs_type]
+                    if re.search("int\d", py_type):
+                        c_types.append(py_type)
+    return c_types
 
 # Should be compatible with GenTypeBasic() upstream
 def py_gen_type(fbs_type) -> str:
@@ -152,6 +166,7 @@ def generate_py(path, tree, templates=[PYTHON_TEMPLATE, None, None]):
     setattr(tree, 'get_module_name', partial(get_module_name, module=tree))
     setattr(tree, 'lookup_fbs_type', lookup_fbs_type)
     setattr(tree, 'parse_types', parse_types)
+    setattr(tree, 'c_int_types', partial(c_int_types, module=tree))
     # Strings
     setattr(tree, 'camel_case', camel_case)
     setattr(tree, 'python_reserved', kwlist)

@@ -1,3 +1,13 @@
+from ctypes import (
+    c_int8 as int8,
+    c_uint8 as uint8,
+    c_int16 as int16,
+    c_uint16 as uint16,
+    c_int32 as int32,
+    c_int64 as int64,
+    c_uint32 as uint32,
+    c_uint64 as uint64,
+)
 from fbs._compat import with_metaclass
 
 
@@ -128,15 +138,15 @@ class FBSType(object):
 
     _VALUES_TO_PY_TYPES = {
         BOOL: 'bool',
-        BYTE: 'int',
-        UBYTE: 'int',
-        SHORT: 'int',
-        USHORT: 'int',
+        BYTE: 'int8',
+        UBYTE: 'int8',
+        SHORT: 'int16',
+        USHORT: 'int16',
         INT: 'int',
-        UINT: 'int',
+        UINT: 'int32',
         FLOAT: 'float',
-        LONG: 'int',
-        ULONG: 'int',
+        LONG: 'int64',
+        ULONG: 'uint64',
         DOUBLE: 'float',
         STRING: 'str',
         STRUCT: 'interface',
