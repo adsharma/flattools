@@ -7,6 +7,7 @@ import argparse
 from fbs.parser import load
 from lang.cpp.generate import generate_cpp
 from lang.java.generate import generate_ijava
+from lang.kt.generate import generate_kt
 from lang.py.generate import generate_py
 from lang.yaml.generate import generate_yaml
 
@@ -27,6 +28,9 @@ def main():
     parser.add_argument(
         "--python", type=bool, default=False, help="Generate Python code"
     )
+    parser.add_argument(
+        "--kotlin", type=bool, default=False, help="Generate Kotlin code"
+    )
     # TODO: pass args.sort to parser
     parser.add_argument(
         "--sort", type=bool, default=False, help="Sort everything alphabetically"
@@ -44,6 +48,11 @@ def main():
                 generate_py(filename, load(filename), args.templates)
             else:
                 generate_py(filename, load(filename))
+        if args.kotlin:
+            if args.templates:
+                generate_kt(filename, load(filename), args.templates)
+            else:
+                generate_kt(filename, load(filename))
 
 
 if __name__ == "__main__":
