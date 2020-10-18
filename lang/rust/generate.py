@@ -26,7 +26,7 @@ def camel_case(text: str) -> str:
 
 
 def generate_rust(
-    path, tree, templates=[RUST_TEMPLATE, RUST_TEMPLATE, RUST_TEMPLATE]
+    path, tree, templates=[RUST_TEMPLATE, None, None], separate=False
 ):
     (prefix, env) = pre_generate_step(path)
     if not os.path.exists(prefix):
@@ -45,7 +45,13 @@ def generate_rust(
     # Strings
     setattr(tree, "camel_case", camel_case)
     setattr(tree, "rust_reserved", RUST_KWLIST)
-    # Python specific
+    if not separate:
+        _, filename = os.path.split(path)
+        rs_filename = os.path.splitext(filename)[0] + ".rs"
+        out_file = os.path.join(prefix, rs_filename)
+        with open(out_file, "w") as target:
+            target.write(env.get_template(table_template).render(tree.__dict__))
+        return
     for table in tree.__fbs_meta__["tables"]:
         out_file = os.path.join(prefix, table.__name__ + ".rs")
         with open(out_file, "w") as target:

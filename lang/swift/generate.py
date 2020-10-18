@@ -26,7 +26,7 @@ def camel_case(text: str) -> str:
 
 
 def generate_swift(
-    path, tree, templates=[SWIFT_TEMPLATE, SWIFT_TEMPLATE, SWIFT_TEMPLATE]
+    path, tree, templates=[SWIFT_TEMPLATE, None, None], separate=False
 ):
     (prefix, env) = pre_generate_step(path)
     if not os.path.exists(prefix):
@@ -45,7 +45,13 @@ def generate_swift(
     # Strings
     setattr(tree, "camel_case", camel_case)
     setattr(tree, "swift_reserved", SWIFT_KWLIST)
-    # Python specific
+    if not separate:
+        _, filename = os.path.split(path)
+        swift_filename = os.path.splitext(filename)[0] + ".swift"
+        out_file = os.path.join(prefix, swift_filename)
+        with open(out_file, "w") as target:
+            target.write(env.get_template(table_template).render(tree.__dict__))
+        return
     for table in tree.__fbs_meta__["tables"]:
         out_file = os.path.join(prefix, table.__name__ + ".swift")
         with open(out_file, "w") as target:

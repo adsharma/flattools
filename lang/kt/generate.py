@@ -73,7 +73,7 @@ def camel_case(text: str) -> str:
 
 
 def generate_kt(
-    path, tree, templates=[KOTLIN_TEMPLATE, KOTLIN_TEMPLATE, KOTLIN_TEMPLATE]
+    path, tree, templates=[KOTLIN_TEMPLATE, None, None], separate=False
 ):
     (prefix, env) = pre_generate_step(path)
     if not os.path.exists(prefix):
@@ -92,7 +92,13 @@ def generate_kt(
     # Strings
     setattr(tree, "camel_case", camel_case)
     setattr(tree, "kotlin_reserved", KT_KWLIST)
-    # Python specific
+    if not separate:
+        _, filename = os.path.split(path)
+        kt_filename = os.path.splitext(filename)[0] + ".kt"
+        out_file = os.path.join(prefix, kt_filename)
+        with open(out_file, "w") as target:
+            target.write(env.get_template(table_template).render(tree.__dict__))
+        return
     for table in tree.__fbs_meta__["tables"]:
         out_file = os.path.join(prefix, table.__name__ + ".kt")
         with open(out_file, "w") as target:

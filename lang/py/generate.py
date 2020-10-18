@@ -31,6 +31,8 @@ def c_int_types(module) -> List:
     c_types = []
     for namespace in _NAMESPACE_TO_TYPE.keys():
         for t in module.__fbs_meta__[namespace]:
+            if namespace == "unions":
+                continue
             if namespace == "enums":
                 py_type = c_int_from_fbs_type(t._FBSType)
                 if py_type:
@@ -92,7 +94,7 @@ def camel_case(text: str) -> str:
 
 
 def generate_py(
-    path, tree, templates=[PYTHON_TEMPLATE, PYTHON_TEMPLATE, PYTHON_TEMPLATE]
+    path, tree, templates=[PYTHON_TEMPLATE, None, None], separate=False,
 ):
     (prefix, env) = pre_generate_step(path)
     if not os.path.exists(prefix):
@@ -117,6 +119,13 @@ def generate_py(
     setattr(tree, "py_gen_type", py_gen_type)
     setattr(tree, "py_gen_method", py_gen_method)
     setattr(tree, "py_gen_getter", py_gen_getter)
+    if not separate:
+        _, filename = os.path.split(path)
+        py_filename = os.path.splitext(filename)[0] + ".py"
+        out_file = os.path.join(prefix, py_filename)
+        with open(out_file, "w") as target:
+            target.write(env.get_template(table_template).render(tree.__dict__))
+        return
     for table in tree.__fbs_meta__["tables"]:
         out_file = os.path.join(prefix, table.__name__ + ".py")
         with open(out_file, "w") as target:

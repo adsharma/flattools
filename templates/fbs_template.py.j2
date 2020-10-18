@@ -10,17 +10,26 @@ from ctypes import (
 )
 {% endif %}
 from dataclasses import dataclass
-
 {% if fbs_enum is defined %}
 from enum import Enum
+{% endif %}
+{% if fbs_union is defined %}
+from typing import Union
+{% endif %}
+
+{%- for fbs_enum in __fbs_meta__.enums %}
 {% set enum_name = fbs_enum.__name__ %}
+
+
 class {{enum_name}}(Enum):
 {% for member, value in fbs_enum._fspec %}
     {{member}} = {{value}}
 {% endfor %}
-{% endif %}
+{% endfor %}
 
-{%- if table is defined %}
+{%- for table in __fbs_meta__.tables %}
+
+
 @dataclass
 {% set table_name = table.__name__ %}
 class {{table_name}}:
@@ -28,4 +37,19 @@ class {{table_name}}:
 {% set py_type = get_type(type[1]) %}
     {{member}}: {{py_type}}
 {% endfor %}
-{% endif %}
+{% endfor %}
+
+{%- for fbs_union in __fbs_meta__.unions %}
+
+{% set union_name = fbs_union.__name__ %}
+
+{{union_name}} = Union[
+{%- for member, _ in fbs_union._fspec %}
+{%- if loop.first %}
+{{member}}
+{%- else %}
+, {{member}}
+{%- endif %}
+{%- endfor %}
+]
+{% endfor %}
