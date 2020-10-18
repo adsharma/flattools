@@ -9,6 +9,7 @@ from lang.cpp.generate import generate_cpp
 from lang.java.generate import generate_ijava
 from lang.kt.generate import generate_kt
 from lang.py.generate import generate_py
+from lang.rust.generate import generate_rust
 from lang.swift.generate import generate_swift
 from lang.yaml.generate import generate_yaml
 
@@ -35,6 +36,9 @@ def main():
     parser.add_argument(
         "--swift", type=bool, default=False, help="Generate Swift code"
     )
+    parser.add_argument(
+        "--rust", type=bool, default=False, help="Generate Rust code"
+    )
     # TODO: pass args.sort to parser
     parser.add_argument(
         "--sort", type=bool, default=False, help="Sort everything alphabetically"
@@ -57,6 +61,11 @@ def main():
                 generate_kt(filename, load(filename), args.templates)
             else:
                 generate_kt(filename, load(filename))
+        if args.rust:
+            if args.templates:
+                generate_rust(filename, load(filename), args.templates)
+            else:
+                generate_rust(filename, load(filename))
         if args.swift:
             if args.templates:
                 generate_swift(filename, load(filename), args.templates)
