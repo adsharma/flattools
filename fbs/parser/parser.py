@@ -494,19 +494,19 @@ def _parse_seq(p):
 def _cast(t):  # noqa
     if t == FBSType.BOOL:
         return _cast_bool
-    if t == FBSType.BYTE:
+    if t == FBSType.BYTE or t == FBSType.UBYTE:
         return _cast_byte
-    if t == FBSType.SHORT:
+    if t == FBSType.SHORT or t == FBSType.USHORT:
         return _cast_short
-    if t == FBSType.INT:
+    if t == FBSType.INT or t == FBSType.UINT:
         return _cast_int
-    if t == FBSType.LONG:
+    if t == FBSType.LONG or t == FBSType.ULONG:
         return _cast_long
-    if t == FBSType.DOUBLE:
+    if t == FBSType.DOUBLE or t == FBSType.FLOAT:
         return _cast_double
     if t == FBSType.STRING:
         return _cast_string
-    if t[0] == FBSType.STRUCT:
+    if isinstance(t, list) and t[0] == FBSType.STRUCT:
         return _cast_struct(t)
     return _cast_enum
 
@@ -547,8 +547,6 @@ def _cast_string(v):
 
 
 def _cast_enum(t):
-    assert t[0] == FBSType.I32
-
     def __cast_enum(v):
         assert isinstance(v, int)
         if v in t[1]._VALUES_TO_NAMES:
