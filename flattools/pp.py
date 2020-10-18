@@ -32,7 +32,7 @@ class FlatbufferPrinter(object):
     def to_string(self):
         out = "flatbuffer: (vtable: %x, size: %d)" % (self.vtable, self.size)
         voff_type = gdb.lookup_type("flatbuffers::voffset_t")
-        soff_type = gdb.lookup_type("flatbuffers::soffset_t")
+        # soff_type = gdb.lookup_type("flatbuffers::soffset_t")
         start = self.vtable + voff_type.sizeof * 2  # offset, size
         end = self.vtable + self.size
         for i, p in enumerate(range(start, end, voff_type.sizeof)):

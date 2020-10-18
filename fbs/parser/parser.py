@@ -7,7 +7,6 @@ IDL Ref:
 
 
 import collections
-import operator
 import os
 import sys
 import types

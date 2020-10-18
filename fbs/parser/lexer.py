@@ -52,7 +52,7 @@ t_ignore = " \t\r"  # whitespace
 
 
 def t_error(t):
-    raise ThriftLexerError("Illegal characher %r at line %d" % (t.value[0], t.lineno))
+    raise FbsLexerError("Illegal characher %r at line %d" % (t.value[0], t.lineno))
 
 
 @TOKEN(r"\n+")
@@ -119,7 +119,7 @@ def t_LITERAL(t):
                 val += maps[s[i]]
             else:
                 msg = "Unexcepted escaping characher: %s" % s[i]
-                raise ThriftLexerError(msg)
+                raise FbsLexerError(msg)
         else:
             val += s[i]
 
@@ -135,7 +135,7 @@ def t_IDENTIFIER(t):
         t.type = t.value.upper()
         return t
     if t.value in fbs_reserved_keywords:
-        raise ThriftLexerError(
+        raise FbsLexerError(
             "Cannot use reserved language keyword: %r"
             " at line %d" % (t.value, t.lineno)
         )

@@ -2,12 +2,11 @@
 
 # -*- coding: utf-8 -*-
 import argparse
-import sys
 
 from thriftpy.thrift import TType
 from fbs.fbs import FBSType
 from thriftpy.parser import load
-from thriftpy.parser.exc import ThriftParserError, ThriftGrammerError
+from thriftpy.parser.exc import ThriftParserError
 
 thrift2_fbs_typemap = {
     TType.BOOL: FBSType.BOOL,
@@ -24,7 +23,7 @@ def fbstype(ttype):
     try:
         name = FBSType._VALUES_TO_NAMES[thrift2_fbs_typemap[ttype[0]]]
         return name.lower()
-    except:
+    except KeyError:
         # structs retain their name
         if ttype[0] == TType.STRUCT:
             return ttype[2].__name__

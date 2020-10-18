@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import pytest
-from fbs.parser import load, load_fp
-from fbs.parser.exc import FbsParserError, FbsGrammerError
+from fbs.parser import load
 
 
 def test_comments():
@@ -10,11 +8,11 @@ def test_comments():
 
 
 def test_constants():
-    fbs = load("parser-cases/constants.fbs")
+    load("parser-cases/constants.fbs")
 
 
 def test_include():
-    fbs = load("parser-cases/include.fbs", include_dirs=["./parser-cases"])
+    load("parser-cases/include.fbs", include_dirs=["./parser-cases"])
 
 
 def test_monsters():
@@ -29,4 +27,4 @@ def test_monsters():
 
 
 def test_thrift2fbs():
-    fbs = load("parser-cases/thrift2fbs.fbs")
+    load("parser-cases/thrift2fbs.fbs")

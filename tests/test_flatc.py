@@ -1,6 +1,3 @@
-import pytest
-
-
 # TODO: Duplicate code
 # Figure out how to import from flatc.py
 def get_attrs_dict(attrs):

@@ -1,13 +1,3 @@
-from ctypes import (
-    c_int8 as int8,
-    c_uint8 as uint8,
-    c_int16 as int16,
-    c_uint16 as uint16,
-    c_int32 as int32,
-    c_int64 as int64,
-    c_uint32 as uint32,
-    c_uint64 as uint64,
-)
 from fbs._compat import with_metaclass
 
 
@@ -95,9 +85,6 @@ class FBSType(object):
 
 class TPayloadMeta(type):
     def __new__(cls, name, bases, attrs):
-        if "default_spec" in attrs:
-            spec = attrs.pop("default_spec")
-            # attrs["__init__"] = init_func_generator(cls, spec)
         return super(TPayloadMeta, cls).__new__(cls, name, bases, attrs)
 
 
@@ -106,8 +93,8 @@ class FBSPayload(with_metaclass(TPayloadMeta, object)):
     __hash__ = None
 
     def __repr__(self):
-        l = ["%s=%r" % (key, value) for key, value in list(self.__dict__.items())]
-        return "%s(%s)" % (self.__class__.__name__, ", ".join(l))
+        attrs = ["%s=%r" % (key, value) for key, value in list(self.__dict__.items())]
+        return "%s(%s)" % (self.__class__.__name__, ", ".join(attrs))
 
     def __str__(self):
         return repr(self)
