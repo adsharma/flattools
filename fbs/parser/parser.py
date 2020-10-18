@@ -592,6 +592,7 @@ def _cast_struct(t):  # struct/exception/union
 def _make_enum(name, FBSType, kvs):
     attrs = {"__module__": fbs_stack[-1].__name__, "_FBSType": FBSType}
     cls = type(name, (object,), attrs)
+    setattr(cls, "_fspec", kvs)
 
     _values_to_names = {}
     _names_to_values = {}

@@ -2,7 +2,7 @@ import os
 import re
 from functools import partial
 from keyword import kwlist
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from fbs.fbs import FBSType
 from lang.common import (
@@ -18,17 +18,29 @@ from lang.py.types import FBSPyType
 PYTHON_TEMPLATE = "fbs_template.py.j2"
 
 
+def c_int_from_fbs_type(fbs_type: FBSType) -> Optional[str]:
+    if fbs_type in FBSType._PRIMITIVE_TYPES:
+        py_type = FBSPyType._VALUES_TO_PY_TYPES[fbs_type]
+        if re.search(r"int\d", py_type):
+            return py_type
+    return None
+
+
 def c_int_types(module) -> List:
     """Figure out what int types need to be imported from ctypes"""
     c_types = []
     for namespace in _NAMESPACE_TO_TYPE.keys():
         for t in module.__fbs_meta__[namespace]:
+            if namespace == "enums":
+                py_type = c_int_from_fbs_type(t._FBSType)
+                if py_type:
+                    c_types.append(py_type)
+                continue
             for _, mtype in t._fspec.items():
                 fbs_type = mtype[1]
-                if fbs_type in FBSType._PRIMITIVE_TYPES:
-                    py_type = FBSPyType._VALUES_TO_PY_TYPES[fbs_type]
-                    if re.search(r"int\d", py_type):
-                        c_types.append(py_type)
+                py_type = c_int_from_fbs_type(fbs_type)
+                if py_type:
+                    c_types.append(py_type)
     return c_types
 
 
@@ -79,7 +91,9 @@ def camel_case(text: str) -> str:
     return "".join([x.title() for x in text.split("_")])
 
 
-def generate_py(path, tree, templates=[PYTHON_TEMPLATE, None, None]):
+def generate_py(
+    path, tree, templates=[PYTHON_TEMPLATE, PYTHON_TEMPLATE, PYTHON_TEMPLATE]
+):
     (prefix, env) = pre_generate_step(path)
     if not os.path.exists(prefix):
         os.mkdir(prefix)

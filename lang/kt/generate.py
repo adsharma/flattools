@@ -72,7 +72,9 @@ def camel_case(text: str) -> str:
     return "".join([x.title() for x in text.split("_")])
 
 
-def generate_kt(path, tree, templates=[KOTLIN_TEMPLATE, KOTLIN_TEMPLATE, KOTLIN_TEMPLATE]):
+def generate_kt(
+    path, tree, templates=[KOTLIN_TEMPLATE, KOTLIN_TEMPLATE, KOTLIN_TEMPLATE]
+):
     (prefix, env) = pre_generate_step(path)
     if not os.path.exists(prefix):
         os.mkdir(prefix)
