@@ -9,6 +9,7 @@ from lang.cpp.generate import generate_cpp
 from lang.java.generate import generate_ijava
 from lang.kt.generate import generate_kt
 from lang.py.generate import generate_py
+from lang.swift.generate import generate_swift
 from lang.yaml.generate import generate_yaml
 
 
@@ -30,6 +31,9 @@ def main():
     )
     parser.add_argument(
         "--kotlin", type=bool, default=False, help="Generate Kotlin code"
+    )
+    parser.add_argument(
+        "--swift", type=bool, default=False, help="Generate Swift code"
     )
     # TODO: pass args.sort to parser
     parser.add_argument(
@@ -53,6 +57,11 @@ def main():
                 generate_kt(filename, load(filename), args.templates)
             else:
                 generate_kt(filename, load(filename))
+        if args.swift:
+            if args.templates:
+                generate_swift(filename, load(filename), args.templates)
+            else:
+                generate_swift(filename, load(filename))
 
 
 if __name__ == "__main__":
