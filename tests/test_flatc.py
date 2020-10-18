@@ -11,4 +11,4 @@ def get_attrs_dict(attrs):
 
 
 def test_attrs_dict():
-    assert get_attrs_dict(['a', ['b', 10], 'c']) == {'a': None, 'b': 10, 'c': None}
+    assert get_attrs_dict(["a", ["b", 10], "c"]) == {"a": None, "b": 10, "c": None}

@@ -51,134 +51,129 @@ class FBSType(object):
     }
 
     _BITS = {
-        BOOL : 1,
-        BYTE : 8,
-        UBYTE : 8,
-        SHORT : 16,
-        USHORT : 16,
-        INT : 32,
-        UINT : 32,
-        FLOAT : 32,
-        LONG : 64,
-        ULONG : 64,
-        DOUBLE : 64,
+        BOOL: 1,
+        BYTE: 8,
+        UBYTE: 8,
+        SHORT: 16,
+        USHORT: 16,
+        INT: 32,
+        UINT: 32,
+        FLOAT: 32,
+        LONG: 64,
+        ULONG: 64,
+        DOUBLE: 64,
     }
 
     _VALUES_TO_NAMES = {
-        BOOL :'BOOL',
-        BYTE :'BYTE',
-        UBYTE :'UBYTE',
-        SHORT :'SHORT',
-        USHORT :'USHORT',
-        INT :'INT',
-        UINT :'UINT',
-        FLOAT :'FLOAT',
-        LONG :'LONG',
-        ULONG :'ULONG',
-        DOUBLE :'DOUBLE',
-        STRING :'STRING',
-        STRUCT : 'STRUCT',
-        TABLE : 'TABLE',
-        UNION : 'UNION',
-        VECTOR: 'VECTOR',
-        ENUM: 'ENUM'
+        BOOL: "BOOL",
+        BYTE: "BYTE",
+        UBYTE: "UBYTE",
+        SHORT: "SHORT",
+        USHORT: "USHORT",
+        INT: "INT",
+        UINT: "UINT",
+        FLOAT: "FLOAT",
+        LONG: "LONG",
+        ULONG: "ULONG",
+        DOUBLE: "DOUBLE",
+        STRING: "STRING",
+        STRUCT: "STRUCT",
+        TABLE: "TABLE",
+        UNION: "UNION",
+        VECTOR: "VECTOR",
+        ENUM: "ENUM",
     }
 
-    _VALUES_TO_NAMES_LOWER = {
-      k : v.lower() for k, v in _VALUES_TO_NAMES.items()
-    }
+    _VALUES_TO_NAMES_LOWER = {k: v.lower() for k, v in _VALUES_TO_NAMES.items()}
 
-    _LOWER_NAMES_TO_VALUES = {
-      v.lower() : k for k, v in _VALUES_TO_NAMES.items()
-    }
+    _LOWER_NAMES_TO_VALUES = {v.lower(): k for k, v in _VALUES_TO_NAMES.items()}
 
     _PRIMITIVE_TYPES = _NUMBER_TYPES.union({STRING})
 
     _PRIMITIVE_TYPES_NAMES = build_named_set(_PRIMITIVE_TYPES, _VALUES_TO_NAMES)
 
     _VALUES_TO_CPP_TYPES = {
-        BOOL :'bool',
-        BYTE :'char',
-        UBYTE :'uchar',
-        SHORT :'short',
-        USHORT :'ushort',
-        INT :'int64_t',
-        UINT :'uint64_t',
-        FLOAT :'float',
-        LONG :'int64_t',
-        ULONG :'uint64_t',
-        DOUBLE :'double',
-        STRING :'std::string',
-        STRUCT : 'struct',
-        TABLE : 'struct',
-        UNION : 'union',
-        VECTOR: 'vector_t',
-        ENUM: 'enum',
+        BOOL: "bool",
+        BYTE: "char",
+        UBYTE: "uchar",
+        SHORT: "short",
+        USHORT: "ushort",
+        INT: "int64_t",
+        UINT: "uint64_t",
+        FLOAT: "float",
+        LONG: "int64_t",
+        ULONG: "uint64_t",
+        DOUBLE: "double",
+        STRING: "std::string",
+        STRUCT: "struct",
+        TABLE: "struct",
+        UNION: "union",
+        VECTOR: "vector_t",
+        ENUM: "enum",
     }
 
     _VALUES_TO_JAVA_TYPES = {
-        BOOL: 'boolean',
-        BYTE: 'char',
-        UBYTE: 'char',
-        SHORT: 'short',
-        USHORT: 'short',
-        INT: 'int',
-        UINT: 'int',
-        FLOAT: 'float',
-        LONG: 'long',
-        ULONG: 'long',
-        DOUBLE: 'double',
-        STRING: 'String',
-        STRUCT: 'interface',
-        TABLE: 'interface',
-        UNION: 'interface',
-        VECTOR: 'interface',
-        ENUM: 'interface',
+        BOOL: "boolean",
+        BYTE: "char",
+        UBYTE: "char",
+        SHORT: "short",
+        USHORT: "short",
+        INT: "int",
+        UINT: "int",
+        FLOAT: "float",
+        LONG: "long",
+        ULONG: "long",
+        DOUBLE: "double",
+        STRING: "String",
+        STRUCT: "interface",
+        TABLE: "interface",
+        UNION: "interface",
+        VECTOR: "interface",
+        ENUM: "interface",
     }
 
     _VALUES_TO_PY_TYPES = {
-        BOOL: 'bool',
-        BYTE: 'int8',
-        UBYTE: 'int8',
-        SHORT: 'int16',
-        USHORT: 'int16',
-        INT: 'int',
-        UINT: 'int32',
-        FLOAT: 'float',
-        LONG: 'int64',
-        ULONG: 'uint64',
-        DOUBLE: 'float',
-        STRING: 'str',
-        STRUCT: 'interface',
-        TABLE: 'interface',
-        UNION: 'interface',
-        VECTOR: 'interface',
-        ENUM: 'interface',
+        BOOL: "bool",
+        BYTE: "int8",
+        UBYTE: "int8",
+        SHORT: "int16",
+        USHORT: "int16",
+        INT: "int",
+        UINT: "int32",
+        FLOAT: "float",
+        LONG: "int64",
+        ULONG: "uint64",
+        DOUBLE: "float",
+        STRING: "str",
+        STRUCT: "interface",
+        TABLE: "interface",
+        UNION: "interface",
+        VECTOR: "interface",
+        ENUM: "interface",
     }
 
     _VALUES_TO_PY_C_TYPES = {
-        BOOL: 'bool',
-        BYTE: 'int8',
-        UBYTE: 'uint8',
-        SHORT: 'int16',
-        USHORT: 'uint16',
-        INT: 'int32',
-        UINT: 'uint32',
-        FLOAT: 'float32',
-        LONG: 'int64',
-        ULONG: 'uint16',
-        DOUBLE: 'float64',
-        STRING: 'int',
-        STRUCT: 'int',
-        TABLE: 'int',
-        UNION: 'int',
-        VECTOR: 'int',
-        ENUM: 'int',
+        BOOL: "bool",
+        BYTE: "int8",
+        UBYTE: "uint8",
+        SHORT: "int16",
+        USHORT: "uint16",
+        INT: "int32",
+        UINT: "uint32",
+        FLOAT: "float32",
+        LONG: "int64",
+        ULONG: "uint16",
+        DOUBLE: "float64",
+        STRING: "int",
+        STRUCT: "int",
+        TABLE: "int",
+        UNION: "int",
+        VECTOR: "int",
+        ENUM: "int",
     }
 
 
 class TPayloadMeta(type):
-
     def __new__(cls, name, bases, attrs):
         if "default_spec" in attrs:
             spec = attrs.pop("default_spec")
@@ -191,15 +186,14 @@ class FBSPayload(with_metaclass(TPayloadMeta, object)):
     __hash__ = None
 
     def __repr__(self):
-        l = ['%s=%r' % (key, value) for key, value in list(self.__dict__.items())]
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(l))
+        l = ["%s=%r" % (key, value) for key, value in list(self.__dict__.items())]
+        return "%s(%s)" % (self.__class__.__name__, ", ".join(l))
 
     def __str__(self):
         return repr(self)
 
     def __eq__(self, other):
-        return isinstance(other, self.__class__) and \
-            self.__dict__ == other.__dict__
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
 
     def __ne__(self, other):
         return not self.__eq__(other)

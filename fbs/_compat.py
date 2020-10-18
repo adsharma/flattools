@@ -19,8 +19,7 @@ UNIX = platform.system() in ("Linux", "Darwin")
 CYTHON = UNIX and not PYPY  # Cython always disabled in pypy and windows
 
 # only python2.7.9 and python 3.4 or above have true ssl context
-MODERN_SSL = (2, 7, 9) <= sys.version_info < (3, 0, 0) or \
-    sys.version_info >= (3, 4)
+MODERN_SSL = (2, 7, 9) <= sys.version_info < (3, 0, 0) or sys.version_info >= (3, 4)
 
 if PY3:
     text_type = str
@@ -30,6 +29,8 @@ if PY3:
 
     def u(s):
         return s
+
+
 else:
     text_type = unicode  # noqa
     string_types = (str, unicode)  # noqa
@@ -60,4 +61,5 @@ def with_metaclass(meta, *bases):
             if this_bases is None:
                 return type.__new__(cls, name, (), d)
             return meta(name, bases, d)
-    return metaclass('temporary_class', None, {})
+
+    return metaclass("temporary_class", None, {})

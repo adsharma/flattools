@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 class FbsParserError(Exception):
     pass
 

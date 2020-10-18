@@ -8,7 +8,6 @@
 """
 
 
-
 import os
 import sys
 
@@ -26,8 +25,7 @@ def load(path, module_name=None, include_dirs=None, include_dir=None):
     `include_dirs`.
     """
     real_module = bool(module_name)
-    fbs = parse(path, module_name, include_dirs=include_dirs,
-                   include_dir=include_dir)
+    fbs = parse(path, module_name, include_dirs=include_dirs, include_dir=include_dir)
 
     if real_module:
         sys.modules[module_name] = fbs
@@ -43,8 +41,8 @@ def load_fp(source, module_name):
 
 
 def _import_module(import_name):
-    if '.' in import_name:
-        module, obj = import_name.rsplit('.', 1)
+    if "." in import_name:
+        module, obj = import_name.rsplit(".", 1)
         return getattr(__import__(module, None, None, [obj]), obj)
     else:
         return __import__(import_name)
@@ -57,14 +55,13 @@ def load_module(fullname):
     filename to locate the real fbs file.
     """
     if not fullname.endswith("_fbs"):
-        raise ImportError(
-            "FlatbufferPy can only load module with '_fbs' suffix")
+        raise ImportError("FlatbufferPy can only load module with '_fbs' suffix")
 
     if fullname in sys.modules:
         return sys.modules[fullname]
 
-    if '.' in fullname:
-        module_name, fbs_module_name = fullname.rsplit('.', 1)
+    if "." in fullname:
+        module_name, fbs_module_name = fullname.rsplit(".", 1)
         module = _import_module(module_name)
         path_prefix = os.path.dirname(os.path.abspath(module.__file__))
         path = os.path.join(path_prefix, fbs_module_name)

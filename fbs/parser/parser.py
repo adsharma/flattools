@@ -6,7 +6,6 @@ IDL Ref:
 """
 
 
-
 import collections
 import operator
 import os
@@ -19,47 +18,51 @@ from fbs._compat import urlopen, urlparse
 from fbs.fbs import FBSType, FBSPayload
 from fbs.fbs import gen_init
 
+
 def p_error(p):
     if p is None:
-        raise FbsGrammerError('Grammer error at EOF')
-    raise FbsGrammerError('Grammer error %r at line %d' %
-                             (p.value, p.lineno))
+        raise FbsGrammerError("Grammer error at EOF")
+    raise FbsGrammerError("Grammer error %r at line %d" % (p.value, p.lineno))
 
 
 def p_start(p):
-    '''start : include_seq body_seq'''
+    """start : include_seq body_seq"""
 
 
 def p_include_seq(p):
-    '''include_seq : include_seq include_one
+    """include_seq : include_seq include_one
                     | include_one
-                    |'''
+                    |"""
+
 
 def p_body_seq(p):
-    '''body_seq : body_seq body
+    """body_seq : body_seq body
                     | body
-                    |'''
+                    |"""
+
 
 def p_include_one(p):
-    '''include_one : INCLUDE LITERAL ';' '''
+    """include_one : INCLUDE LITERAL ';' """
     fbs = fbs_stack[-1]
     if fbs.__fbs_file__ is None:
-        raise FbsParserError('Unexcepted include statement while loading'
-                                'from file like object.')
-    replace_include_dirs = [os.path.dirname(fbs.__fbs_file__)] \
-        + include_dirs_
+        raise FbsParserError(
+            "Unexcepted include statement while loading" "from file like object."
+        )
+    replace_include_dirs = [os.path.dirname(fbs.__fbs_file__)] + include_dirs_
     for include_dir in replace_include_dirs:
         path = os.path.join(include_dir, p[2])
         if os.path.exists(path):
             child = parse(path)
             setattr(fbs, child.__name__, child)
-            _add_fbs_meta('includes', child)
+            _add_fbs_meta("includes", child)
             return
-    raise FbsParserError(('Couldn\'t include fbs %s in any '
-                             'directories provided') % p[2])
+    raise FbsParserError(
+        ("Couldn't include fbs %s in any " "directories provided") % p[2]
+    )
+
 
 def p_body(p):
-    '''body : namespace
+    """body : namespace
             | typedef
             | enum
             | root
@@ -68,85 +71,96 @@ def p_body(p):
             | attribute
             | object
             | rpc_service
-            |'''
+            |"""
+
 
 def p_namespace(p):
-    '''namespace : NAMESPACE IDENTIFIER ';' '''
-    setattr(fbs_stack[-1], 'namespace', p[2])
+    """namespace : NAMESPACE IDENTIFIER ';' """
+    setattr(fbs_stack[-1], "namespace", p[2])
+
 
 def p_root(p):
-    '''root : ROOT_TYPE IDENTIFIER ';' '''
-    setattr(fbs_stack[-1], 'root', p[2])
+    """root : ROOT_TYPE IDENTIFIER ';' """
+    setattr(fbs_stack[-1], "root", p[2])
+
 
 def p_file_extension(p):
-    '''file_extension : FILE_EXTENSION LITERAL ';' '''
-    setattr(fbs_stack[-1], 'file_extension', p[2])
+    """file_extension : FILE_EXTENSION LITERAL ';' """
+    setattr(fbs_stack[-1], "file_extension", p[2])
+
 
 def p_file_identifier(p):
-    '''file_identifier : FILE_IDENTIFIER LITERAL ';' '''
-    setattr(fbs_stack[-1], 'file_identifier', p[2])
+    """file_identifier : FILE_IDENTIFIER LITERAL ';' """
+    setattr(fbs_stack[-1], "file_identifier", p[2])
+
 
 def p_metadata(p):
-    '''metadata : '(' metadata_seq ')'
-                |'''
+    """metadata : '(' metadata_seq ')'
+                |"""
     if len(p) > 2:
         p[0] = p[2]
     else:
         p[0] = []
 
+
 def p_metadata_seq(p):
-    '''metadata_seq : metadata_item ',' metadata_seq
+    """metadata_seq : metadata_item ',' metadata_seq
                     | metadata_item
-                    |'''
+                    |"""
     _parse_seq(p)
 
+
 def p_metadata_item(p):
-    '''metadata_item : IDENTIFIER
-                     | IDENTIFIER ':' scalar'''
+    """metadata_item : IDENTIFIER
+                     | IDENTIFIER ':' scalar"""
     if len(p) == 4:
         p[0] = [p[1], p[3]]
     else:
         p[0] = [p[1]]
 
+
 def p_attribute(p):
-    '''attribute : ATTRIBUTE LITERAL ';' '''
+    """attribute : ATTRIBUTE LITERAL ';' """
+
 
 def p_object(p):
-    '''object : '{' field_seq '}' '''
+    """object : '{' field_seq '}' """
+
 
 def p_typedef(p):
-    '''typedef : table
-       typedef : struct '''
-    if (p[1]):
+    """typedef : table
+       typedef : struct """
+    if p[1]:
         setattr(fbs_stack[-1], p[1][0], p[1][1])
 
+
 def p_enum(p):  # noqa
-    '''enum : ENUM IDENTIFIER metadata '{' enum_seq '}'
+    """enum : ENUM IDENTIFIER metadata '{' enum_seq '}'
        enum : ENUM IDENTIFIER ':' simple_base_type metadata '{' enum_seq '}'
-       enum : union'''
+       enum : union"""
     if len(p) == 9:
         val = _make_enum(p[2], p[4], p[7])
     elif len(p) == 7:
         val = _make_enum(p[2], FBSType.INT, p[5])
     else:
         val = p[1]
-    if (len(p) > 2):
+    if len(p) > 2:
         setattr(fbs_stack[-1], p[2], val)
-        _add_fbs_meta('enums', val)
+        _add_fbs_meta("enums", val)
 
 
 def p_enum_seq(p):
-    '''enum_seq : enum_item ',' enum_seq
+    """enum_seq : enum_item ',' enum_seq
                 | enum_item enum_seq
-                |'''
+                |"""
     _parse_seq(p)
 
 
 def p_enum_item(p):
-    '''enum_item : IDENTIFIER '=' INTCONSTANT
+    """enum_item : IDENTIFIER '=' INTCONSTANT
                  | IDENTIFIER '=' LITERAL
                  | IDENTIFIER
-                 |'''
+                 |"""
     if len(p) == 4:
         p[0] = [p[1], p[3]]
     elif len(p) == 2:
@@ -154,52 +168,58 @@ def p_enum_item(p):
 
 
 def p_struct(p):
-    '''struct : STRUCT IDENTIFIER metadata '{' field_seq '}' '''
+    """struct : STRUCT IDENTIFIER metadata '{' field_seq '}' """
     val = _make_empty_struct(p[2])
     setattr(fbs_stack[-1], p[1], val)
     val = _fill_in_struct(val, p[5], p[3])
-    _add_fbs_meta('structs', val)
+    _add_fbs_meta("structs", val)
+
 
 def p_table(p):
-    '''table : TABLE IDENTIFIER metadata '{' field_seq '}' '''
+    """table : TABLE IDENTIFIER metadata '{' field_seq '}' """
     val = _make_empty_struct(p[2])
     setattr(fbs_stack[-1], p[1], val)
     val = _fill_in_struct(val, p[5], p[3])
-    _add_fbs_meta('tables', val)
+    _add_fbs_meta("tables", val)
+
 
 def p_union(p):
-    '''union : UNION IDENTIFIER metadata '{' enum_seq '}' '''
+    """union : UNION IDENTIFIER metadata '{' enum_seq '}' """
     val = _make_enum(p[2], FBSType.UNION, p[5])
     # TODO: check if enum_seq has initializers and raise errors
     setattr(fbs_stack[-1], p[1], val)
-    _add_fbs_meta('unions', val)
+    _add_fbs_meta("unions", val)
+
 
 def p_rpc_service(p):
-    '''rpc_service : RPC_SERVICE IDENTIFIER '{' rpc_method_seq '}' '''
+    """rpc_service : RPC_SERVICE IDENTIFIER '{' rpc_method_seq '}' """
+
 
 def p_rpc_method_seq(p):
-    '''rpc_method_seq : rpc_method rpc_method_seq
-                      |'''
+    """rpc_method_seq : rpc_method rpc_method_seq
+                      |"""
+
 
 def p_rpc_method(p):
-    '''rpc_method : IDENTIFIER '(' IDENTIFIER ')' ':' IDENTIFIER metadata ';' '''
+    """rpc_method : IDENTIFIER '(' IDENTIFIER ')' ':' IDENTIFIER metadata ';' """
+
 
 def p_field_seq(p):
-    '''field_seq : field field_seq
-                 |'''
+    """field_seq : field field_seq
+                 |"""
     _parse_seq(p)
 
 
 def p_field(p):
-    '''field : IDENTIFIER ':' type metadata ';'
-             | IDENTIFIER ':' type '=' scalar metadata ';' '''
+    """field : IDENTIFIER ':' type metadata ';'
+             | IDENTIFIER ':' type '=' scalar metadata ';' """
     if len(p) == 8:
         try:
             val = _cast(p[3])(p[5])
         except AssertionError:
             raise FbsParserError(
-                'Type error for field %s '
-                'at line %d' % (p[1], p.lineno(4)))
+                "Type error for field %s " "at line %d" % (p[1], p.lineno(4))
+            )
     else:
         val = None
 
@@ -210,24 +230,26 @@ def p_field(p):
         metadata = p[4]
 
     if metadata:
-        required = 'required' in [x[0] for x in metadata]
+        required = "required" in [x[0] for x in metadata]
     # field_id, required, type, name, value, metadata
     p[0] = [None, required, p[3], p[1], val, metadata]
 
+
 def p_type(p):
-    '''type : simple_base_type
+    """type : simple_base_type
             | '[' type ']'
-            | IDENTIFIER'''
+            | IDENTIFIER"""
     if len(p) == 4:
-        if (isinstance(p[2], int)):
-            p[0] = '[%s]' % FBSType._VALUES_TO_NAMES[p[2]].lower()
+        if isinstance(p[2], int):
+            p[0] = "[%s]" % FBSType._VALUES_TO_NAMES[p[2]].lower()
         else:
-            p[0] = '[%s]' % p[2]
+            p[0] = "[%s]" % p[2]
     else:
         p[0] = p[1]
 
+
 def p_simple_base_type(p):  # noqa
-    '''simple_base_type : BOOL
+    """simple_base_type : BOOL
                         | BYTE
                         | UBYTE
                         | SHORT
@@ -238,53 +260,65 @@ def p_simple_base_type(p):  # noqa
                         | LONG
                         | ULONG
                         | DOUBLE
-                        | STRING'''
+                        | STRING"""
     # TODO: make this less verbose and handle all types
-    if p[1].upper() == 'BOOL':
+    if p[1].upper() == "BOOL":
         p[0] = FBSType.BOOL
-    elif p[1].upper() == 'BYTE':
+    elif p[1].upper() == "BYTE":
         p[0] = FBSType.BYTE
-    elif p[1].upper() == 'UBYTE':
+    elif p[1].upper() == "UBYTE":
         p[0] = FBSType.UBYTE
-    elif p[1].upper() == 'SHORT':
+    elif p[1].upper() == "SHORT":
         p[0] = FBSType.SHORT
-    elif p[1].upper() == 'USHORT':
+    elif p[1].upper() == "USHORT":
         p[0] = FBSType.USHORT
-    elif p[1].upper() == 'INT':
+    elif p[1].upper() == "INT":
         p[0] = FBSType.INT
-    elif p[1].upper() == 'UINT':
+    elif p[1].upper() == "UINT":
         p[0] = FBSType.UINT
-    elif p[1].upper() == 'LONG':
+    elif p[1].upper() == "LONG":
         p[0] = FBSType.LONG
-    elif p[1].upper() == 'ULONG':
+    elif p[1].upper() == "ULONG":
         p[0] = FBSType.ULONG
-    elif p[1].upper() == 'FLOAT':
+    elif p[1].upper() == "FLOAT":
         p[0] = FBSType.FLOAT
-    elif p[1].upper() == 'DOUBLE':
+    elif p[1].upper() == "DOUBLE":
         p[0] = FBSType.DOUBLE
-    elif p[1].upper() == 'STRING':
+    elif p[1].upper() == "STRING":
         p[0] = FBSType.STRING
     else:
         p[0] = FBSType.STRUCT
 
+
 def p_scalar(p):
-    '''scalar : LITERAL
+    """scalar : LITERAL
               | BOOLCONSTANT
               | DUBCONSTANT
               | INTCONSTANT
-              | IDENTIFIER'''  # This violates grammar?
+              | IDENTIFIER"""  # This violates grammar?
     p[0] = p[1]
 
+
 fbs_stack = []
-include_dirs_ = ['.']
+include_dirs_ = ["."]
 fbs_cache = {}
 
-def sort_members(fbs):
-   for member in ('tables', 'structs', 'unions', 'enum'):
-      fbs.__fbs_meta__[member] = sorted(fbs.__fbs_meta__[member])
 
-def parse(path, module_name=None, include_dirs=None, include_dir=None,
-          lexer=None, parser=None, enable_cache=True, enable_sort=False):
+def sort_members(fbs):
+    for member in ("tables", "structs", "unions", "enum"):
+        fbs.__fbs_meta__[member] = sorted(fbs.__fbs_meta__[member])
+
+
+def parse(
+    path,
+    module_name=None,
+    include_dirs=None,
+    include_dir=None,
+    lexer=None,
+    parser=None,
+    enable_cache=True,
+    enable_sort=False,
+):
     """Parse a single fbs file to module object, e.g.::
 
         >>> from fbs.parser.parser import parse
@@ -306,15 +340,14 @@ def parse(path, module_name=None, include_dirs=None, include_dir=None,
                          cached, this is enabled by default. If `module_name`
                          is provided, use it as cache key, else use the `path`.
     """
-    if os.name == 'nt' and sys.version_info < (3, 2):
+    if os.name == "nt" and sys.version_info < (3, 2):
         os.path.samefile = lambda f1, f2: os.stat(f1) == os.stat(f2)
 
     # We support include cycles, just like other languages
     # The parsed module object may be incomplete when we return
     # here, but will eventually be filled out
     for fbs in fbs_stack:
-        if fbs.__fbs_file__ is not None and \
-                os.path.samefile(path, fbs.__fbs_file__):
+        if fbs.__fbs_file__ is not None and os.path.samefile(path, fbs.__fbs_file__):
             return fbs
 
     global fbs_cache
@@ -327,8 +360,9 @@ def parse(path, module_name=None, include_dirs=None, include_dir=None,
     if lexer is None:
         lexer = lex.lex()
     if parser is None:
-        parser = yacc.yacc(optimize=1, write_tables=False, debug=False,
-                           tabmodule="fbs.parser.parsetab")
+        parser = yacc.yacc(
+            optimize=1, write_tables=False, debug=False, tabmodule="fbs.parser.parsetab"
+        )
 
     global include_dirs_
 
@@ -337,33 +371,33 @@ def parse(path, module_name=None, include_dirs=None, include_dir=None,
     if include_dir is not None:
         include_dirs_.append(include_dir)
 
-    if not path.endswith('.fbs'):
-        raise FbsParserError('Path should end with .fbs')
+    if not path.endswith(".fbs"):
+        raise FbsParserError("Path should end with .fbs")
 
     url_scheme = urlparse(path).scheme
-    if url_scheme == 'file':
+    if url_scheme == "file":
         with open(urlparse(path).netloc + urlparse(path).path) as fh:
             data = fh.read()
-    elif url_scheme == '':
+    elif url_scheme == "":
         with open(path) as fh:
             data = fh.read()
-    elif url_scheme in ('http', 'https'):
+    elif url_scheme in ("http", "https"):
         data = urlopen(path).read()
     else:
-        raise FbsParserError('flattools does not support generating module '
-                                'with path in protocol \'{}\''.format(
-                                    url_scheme))
+        raise FbsParserError(
+            "flattools does not support generating module "
+            "with path in protocol '{}'".format(url_scheme)
+        )
 
-    if module_name is not None and not module_name.endswith('_fbs'):
-        raise FbsParserError('flattools can only generate module with '
-                                '\'_fbs\' suffix')
+    if module_name is not None and not module_name.endswith("_fbs"):
+        raise FbsParserError("flattools can only generate module with " "'_fbs' suffix")
 
     if module_name is None:
         basename = os.path.basename(path)
         module_name = os.path.splitext(basename)[0]
 
     fbs = types.ModuleType(module_name)
-    setattr(fbs, '__fbs_file__', path)
+    setattr(fbs, "__fbs_file__", path)
     fbs_stack.append(fbs)
     lexer.lineno = 1
     parser.parse(data)
@@ -376,8 +410,9 @@ def parse(path, module_name=None, include_dirs=None, include_dir=None,
     return fbs
 
 
-def parse_fp(source, module_name, lexer=None, parser=None, enable_cache=True,
-             enable_sort=False):
+def parse_fp(
+    source, module_name, lexer=None, parser=None, enable_cache=True, enable_sort=False
+):
     """Parse a file-like object to fbs module object, e.g.::
 
         >>> from fbs.fbs.parser.parser import parse_fp
@@ -393,27 +428,28 @@ def parse_fp(source, module_name, lexer=None, parser=None, enable_cache=True,
     :param enable_cache: if this is set to be `True`, parsed module will be
                          cached by `module_name`, this is enabled by default.
     """
-    if not module_name.endswith('_fbs'):
-        raise FbsParserError('thriftpy can only generate module with '
-                                '\'_fbs\' suffix')
+    if not module_name.endswith("_fbs"):
+        raise FbsParserError("thriftpy can only generate module with " "'_fbs' suffix")
 
     if enable_cache and module_name in fbs_cache:
         return fbs_cache[module_name]
 
-    if not hasattr(source, 'read'):
-        raise FbsParserError('Except `source` to be a file-like object with'
-                                'a method named \'read\'')
+    if not hasattr(source, "read"):
+        raise FbsParserError(
+            "Except `source` to be a file-like object with" "a method named 'read'"
+        )
 
     if lexer is None:
         lexer = lex.lex()
     if parser is None:
-        parser = yacc.yacc(optimize=1, write_tables=False, debug=False,
-                           tabmodule="fbs.parser.parsetab")
+        parser = yacc.yacc(
+            optimize=1, write_tables=False, debug=False, tabmodule="fbs.parser.parsetab"
+        )
 
     data = source.read()
 
     fbs = types.ModuleType(module_name)
-    setattr(fbs, '__fbs_file__', None)
+    setattr(fbs, "__fbs_file__", None)
     fbs_stack.append(fbs)
     lexer.lineno = 1
     parser.parse(data)
@@ -429,18 +465,18 @@ def parse_fp(source, module_name, lexer=None, parser=None, enable_cache=True,
 def _add_fbs_meta(key, val):
     fbs = fbs_stack[-1]
 
-    if not hasattr(fbs, '__fbs_meta__'):
+    if not hasattr(fbs, "__fbs_meta__"):
         meta = collections.defaultdict(list)
-        setattr(fbs, '__fbs_meta__',  meta)
+        setattr(fbs, "__fbs_meta__", meta)
     else:
-        meta = getattr(fbs, '__fbs_meta__')
+        meta = getattr(fbs, "__fbs_meta__")
 
     meta[key].append(val)
 
 
 def _get_fbs_meta(key):
     fbs = fbs_stack[-1]
-    meta = getattr(fbs, '__fbs_meta__', None)
+    meta = getattr(fbs, "__fbs_meta__", None)
     return meta[key] if meta else None
 
 
@@ -517,12 +553,15 @@ def _cast_enum(t):
         assert isinstance(v, int)
         if v in t[1]._VALUES_TO_NAMES:
             return v
-        raise FbsParserError('Couldn\'t find a named value in enum '
-                                '%s for value %d' % (t[1].__name__, v))
+        raise FbsParserError(
+            "Couldn't find a named value in enum "
+            "%s for value %d" % (t[1].__name__, v)
+        )
+
     return __cast_enum
 
 
-def _cast_struct(t):   # struct/exception/union
+def _cast_struct(t):  # struct/exception/union
     assert t[0] == FBSType.STRUCT
 
     def __cast_struct(v):
@@ -530,27 +569,30 @@ def _cast_struct(t):   # struct/exception/union
             return v  # already cast
 
         assert isinstance(v, dict)
-        tspec = getattr(t[1], '_tspec')
+        tspec = getattr(t[1], "_tspec")
 
         for key in tspec:  # requirement check
             if tspec[key][0] and key not in v:
-                raise FbsParserError('Field %r was required to create '
-                                        'constant for type %r' %
-                                        (key, t[1].__name__))
+                raise FbsParserError(
+                    "Field %r was required to create "
+                    "constant for type %r" % (key, t[1].__name__)
+                )
 
         for key in v:  # cast values
             if key not in tspec:
-                raise FbsParserError('No field named %r was '
-                                        'found in struct of type %r' %
-                                        (key, t[1].__name__))
+                raise FbsParserError(
+                    "No field named %r was "
+                    "found in struct of type %r" % (key, t[1].__name__)
+                )
             v[key] = _cast(tspec[key][1])(v[key])
         return t[1](**v)
+
     return __cast_struct
 
 
 def _make_enum(name, FBSType, kvs):
-    attrs = {'__module__': fbs_stack[-1].__name__, '_FBSType': FBSType}
-    cls = type(name, (object, ), attrs)
+    attrs = {"__module__": fbs_stack[-1].__name__, "_FBSType": FBSType}
+    cls = type(name, (object,), attrs)
 
     _values_to_names = {}
     _names_to_values = {}
@@ -567,13 +609,15 @@ def _make_enum(name, FBSType, kvs):
             setattr(cls, key, val)
             _values_to_names[val] = key
             _names_to_values[key] = val
-    setattr(cls, '_VALUES_TO_NAMES', _values_to_names)
-    setattr(cls, '_NAMES_TO_VALUES', _names_to_values)
+    setattr(cls, "_VALUES_TO_NAMES", _values_to_names)
+    setattr(cls, "_NAMES_TO_VALUES", _names_to_values)
     return cls
 
+
 def _make_empty_struct(name, FBSType=FBSType.STRUCT, base_cls=FBSPayload):
-    attrs = {'__module__': fbs_stack[-1].__name__, '_FBSType': FBSType}
-    return type(name, (base_cls, ), attrs)
+    attrs = {"__module__": fbs_stack[-1].__name__, "_FBSType": FBSType}
+    return type(name, (base_cls,), attrs)
+
 
 def check_enum(ftype, classes) -> bool:
     "Check if ftype is in the list of classes"
@@ -584,14 +628,15 @@ def check_enum(ftype, classes) -> bool:
             return True
     return False
 
+
 def _fill_in_struct(cls, fields, attrs, _gen_init=True):
     # XXX: Is fbs_spec needed, since flatbuffers don't have field order?
     fbs_spec = collections.OrderedDict()
     default_spec = []
     _fspec = collections.OrderedDict()
     meta = collections.OrderedDict()
-    meta['key_fields'] = []
-    meta['value_fields'] = []
+    meta["key_fields"] = []
+    meta["value_fields"] = []
 
     # Use sorted() here like so:
     # for field in fields, key=operator.itemgetter(3)):
@@ -601,42 +646,45 @@ def _fill_in_struct(cls, fields, attrs, _gen_init=True):
         # See p_field() above for details
         field_id, required, ftype, name, value, metadata = field
         if name in _fspec:
-            raise FbsGrammerError(('\'%s\' field identifier/name has '
-                                      'already been used') % (name))
-        if check_enum(ftype, _get_fbs_meta('unions')):
-            type_accessor = name + '_type'
+            raise FbsGrammerError(
+                ("'%s' field identifier/name has " "already been used") % (name)
+            )
+        if check_enum(ftype, _get_fbs_meta("unions")):
+            type_accessor = name + "_type"
             fbs_spec[type_accessor] = _fbstype_spec(ftype, type_accessor, required)
             default_spec.append((type_accessor, None))
             _fspec[type_accessor] = required, FBSType.UBYTE, None
         fbs_spec[name] = _fbstype_spec(ftype, name, required)
         default_spec.append((name, value))
         _fspec[name] = required, ftype, metadata
-        key = 'key' in metadata
+        key = "key" in metadata
         string_key = key and ftype == FBSType.STRING
         if key and not string_key:
-            meta['key_fields'].append(name)
+            meta["key_fields"].append(name)
         else:
-            meta['value_fields'].append(name)
-    setattr(cls, 'fbs_spec', fbs_spec)
-    setattr(cls, 'default_spec', default_spec)
-    setattr(cls, '_fspec', _fspec)
-    setattr(cls, 'meta', meta)
-    setattr(cls, 'attributes', attrs)
+            meta["value_fields"].append(name)
+    setattr(cls, "fbs_spec", fbs_spec)
+    setattr(cls, "default_spec", default_spec)
+    setattr(cls, "_fspec", _fspec)
+    setattr(cls, "meta", meta)
+    setattr(cls, "attributes", attrs)
     if _gen_init:
         gen_init(cls, fbs_spec, default_spec)
     return cls
 
 
-def _make_struct(name, fields, FBSType=FBSType.STRUCT, base_cls=FBSPayload,
-                 _gen_init=True):
+def _make_struct(
+    name, fields, FBSType=FBSType.STRUCT, base_cls=FBSPayload, _gen_init=True
+):
     cls = _make_empty_struct(name, FBSType=FBSType, base_cls=base_cls)
     return _fill_in_struct(cls, fields, None, _gen_init=_gen_init)
+
 
 def _fbstype_spec(fbstype, name, required=False):
     return fbstype, name, required
 
 
 def _get_fbstype(inst, default_fbstype=None):
-    if hasattr(inst, '__dict__') and '_fbstype' in inst.__dict__:
-        return inst.__dict__['_fbstype']
+    if hasattr(inst, "__dict__") and "_fbstype" in inst.__dict__:
+        return inst.__dict__["_fbstype"]
     return default_fbstype
