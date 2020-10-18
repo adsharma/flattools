@@ -1,0 +1,19 @@
+enum Color : byte { Red = 1, Green, Blue }
+
+table Person {
+       name : string;
+       address : string;
+       age : short;
+       length: ulong;
+       favorite_color: Color;
+}
+
+table Product {
+       label: string;
+       price: int;
+}
+
+union Item {
+    Product,
+    Person,
+}

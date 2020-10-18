@@ -15,6 +15,10 @@ def test_include():
     load("parser-cases/include.fbs", include_dirs=["./parser-cases"])
 
 
+def test_color():
+    load("parser-cases/color.fbs")
+
+
 def test_monsters():
     fbs = load("parser-cases/monster_test.fbs")
     assert fbs.root == "Monster"
