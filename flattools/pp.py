@@ -12,8 +12,9 @@ end
 
 ###
 
-import gdb
 import re
+
+import gdb
 
 
 class FlatbufferPrinter(object):

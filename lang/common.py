@@ -1,8 +1,9 @@
 import os
+from typing import Optional, Tuple
+
+from jinja2 import Environment, FileSystemLoader
 
 from fbs.fbs import FBSType
-from jinja2 import Environment, FileSystemLoader
-from typing import Optional, Tuple
 
 GLOBAL_OPTIONS = {"trim_blocks": True, "lstrip_blocks": True}
 

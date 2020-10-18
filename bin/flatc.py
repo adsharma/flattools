@@ -5,10 +5,10 @@
 import argparse
 
 from fbs.parser import load
+from lang.cpp.generate import generate_cpp
+from lang.java.generate import generate_ijava
 from lang.py.generate import generate_py
 from lang.yaml.generate import generate_yaml
-from lang.java.generate import generate_ijava
-from lang.cpp.generate import generate_cpp
 
 
 def main():

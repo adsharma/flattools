@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import re
+from os.path import dirname, join
 
-from os.path import join, dirname
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 with open(join(dirname(__file__), "fbs", "__init__.py"), "r") as f:
     version = re.match(r".*__version__ = (.*?)", f.read(), re.S).group(1)

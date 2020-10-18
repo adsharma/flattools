@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 
-from .exc import FbsLexerError
 from ply.lex import TOKEN
 
+from .exc import FbsLexerError
 
 literals = ":;,=*{}()<>[]"
 

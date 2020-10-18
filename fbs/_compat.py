@@ -24,8 +24,8 @@ MODERN_SSL = (2, 7, 9) <= sys.version_info < (3, 0, 0) or sys.version_info >= (3
 if PY3:
     text_type = str
     string_types = (str,)
-    from urllib.request import urlopen
     from urllib.parse import urlparse
+    from urllib.request import urlopen
 
     def u(s):
         return s

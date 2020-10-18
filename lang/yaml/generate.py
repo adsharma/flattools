@@ -1,4 +1,5 @@
 from functools import partial
+
 from fbs.fbs import FBSType
 from lang.common import get_type, pre_generate_step
 

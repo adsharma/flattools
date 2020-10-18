@@ -10,12 +10,14 @@ import collections
 import os
 import sys
 import types
+
 from ply import lex, yacc
-from .lexer import *  # noqa
-from .exc import FbsParserError, FbsGrammerError
+
 from fbs._compat import urlopen, urlparse
-from fbs.fbs import FBSType, FBSPayload
-from fbs.fbs import gen_init
+from fbs.fbs import FBSPayload, FBSType, gen_init
+
+from .exc import FbsGrammerError, FbsParserError
+from .lexer import *  # noqa
 
 
 def p_error(p):

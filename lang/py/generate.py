@@ -1,17 +1,17 @@
 import os
 import re
-
-from keyword import kwlist
 from functools import partial
+from keyword import kwlist
 from typing import List, Tuple
+
 from fbs.fbs import FBSType
 from lang.common import (
-    get_type,
-    get_module_name,
-    lookup_fbs_type,
-    pre_generate_step,
-    parse_types,
     _NAMESPACE_TO_TYPE,
+    get_module_name,
+    get_type,
+    lookup_fbs_type,
+    parse_types,
+    pre_generate_step,
 )
 from lang.py.types import FBSPyType
 
