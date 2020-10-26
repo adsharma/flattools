@@ -1,7 +1,7 @@
 enum Color : byte { Red = 1, Green, Blue }
 
 table Person {
-       name : string;
+       name : string (required);
        address : string;
        age : short;
        length: ulong;

@@ -23,7 +23,8 @@ enum {{enum_name}} : {{enum_type}} {
 {% set table_name = table.__name__ %}
 struct {{table_name}} {
 {% for member, type in table['_fspec'].items() %}
-{% set swift_type = get_type(type[1]) %}
+{% set optional = 'required' not in type[2][0] %}
+{% set swift_type = get_type(type[1], optional=optional) %}
     var {{member}}: {{swift_type}}
 {% endfor %}
 }

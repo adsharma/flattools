@@ -18,7 +18,8 @@ enum {{enum_name}} {
 #[derive(PartialEq,Clone,Default)]
 pub struct {{table_name}} {
 {% for member, type in table['_fspec'].items() %}
-{% set rust_type = get_type(type[1]) %}
+{% set optional = 'required' not in type[2][0] %}
+{% set rust_type = get_type(type[1], optional=optional) %}
     pub {{member}}: {{rust_type}},
 {% endfor %}
 }

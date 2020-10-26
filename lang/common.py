@@ -15,9 +15,12 @@ _NAMESPACE_TO_TYPE = {
 }
 
 
-def get_type(name, module, primitive):
+def get_type(name, module, primitive, optional=False, optionalize=None):
     try:
-        return primitive[name]
+        base = primitive[name]
+        if optional and optionalize:
+            return optionalize(base)
+        return base
     except KeyError:
         for namespace in _NAMESPACE_TO_TYPE.keys():
             for t in module.__fbs_meta__[namespace]:

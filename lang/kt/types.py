@@ -21,3 +21,7 @@ class FBSKotlinType(FBSType):
         FBSType.VECTOR: "interface",
         FBSType.ENUM: "enum class",
     }
+
+
+def optionalize(primitive):
+    return f"{primitive}?"

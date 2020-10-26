@@ -21,3 +21,7 @@ class FBSSwiftType(FBSType):
         FBSType.VECTOR: "interface",
         FBSType.ENUM: "enum",
     }
+
+
+def optionalize(primitive):
+    return f"{primitive}?"

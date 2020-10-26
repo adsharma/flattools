@@ -13,21 +13,18 @@ from lang.common import (
     parse_types,
     pre_generate_step,
 )
-from lang.rust.types import FBSRustType
+from lang.rust.types import FBSRustType, optionalize
 
 RUST_TEMPLATE = "fbs_template.rs.j2"
 
-RUST_KWLIST = {
-}
+RUST_KWLIST = {}
 
 
 def camel_case(text: str) -> str:
     return "".join([x.title() for x in text.split("_")])
 
 
-def generate_rust(
-    path, tree, templates=[RUST_TEMPLATE, None, None], separate=False
-):
+def generate_rust(path, tree, templates=[RUST_TEMPLATE, None, None], separate=False):
     (prefix, env) = pre_generate_step(path)
     if not os.path.exists(prefix):
         os.mkdir(prefix)
@@ -37,7 +34,11 @@ def generate_rust(
     setattr(tree, "FBSType", FBSType)
     setattr(tree, "rust_types", FBSRustType._VALUES_TO_RUST_TYPES)
     setattr(
-        tree, "get_type", partial(get_type, primitive=tree.rust_types, module=tree)
+        tree,
+        "get_type",
+        partial(
+            get_type, primitive=tree.rust_types, optionalize=optionalize, module=tree
+        ),
     )
     setattr(tree, "get_module_name", partial(get_module_name, module=tree))
     setattr(tree, "lookup_fbs_type", lookup_fbs_type)

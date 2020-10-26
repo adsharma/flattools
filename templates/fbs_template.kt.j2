@@ -16,7 +16,9 @@ enum class {{enum_name}}(val x: {{enum_type}}) {
 {% set table_name = table.__name__ %}
 data class {{table_name}}(
 {% for member, type in table['_fspec'].items() %}
-{% set kt_type = get_type(type[1]) %}
+{% set key = 'key' in type[2] %}
+{% set optional = 'required' not in type[2][0] %}
+{% set kt_type = get_type(type[1], optional=optional) %}
     val {{member}}: {{kt_type}},
 {% endfor %}
 )

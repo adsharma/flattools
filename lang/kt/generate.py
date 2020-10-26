@@ -13,7 +13,7 @@ from lang.common import (
     parse_types,
     pre_generate_step,
 )
-from lang.kt.types import FBSKotlinType
+from lang.kt.types import FBSKotlinType, optionalize
 
 KOTLIN_TEMPLATE = "fbs_template.kt.j2"
 
@@ -72,9 +72,7 @@ def camel_case(text: str) -> str:
     return "".join([x.title() for x in text.split("_")])
 
 
-def generate_kt(
-    path, tree, templates=[KOTLIN_TEMPLATE, None, None], separate=False
-):
+def generate_kt(path, tree, templates=[KOTLIN_TEMPLATE, None, None], separate=False):
     (prefix, env) = pre_generate_step(path)
     if not os.path.exists(prefix):
         os.mkdir(prefix)
@@ -84,7 +82,11 @@ def generate_kt(
     setattr(tree, "FBSType", FBSType)
     setattr(tree, "kotlin_types", FBSKotlinType._VALUES_TO_KT_TYPES)
     setattr(
-        tree, "get_type", partial(get_type, primitive=tree.kotlin_types, module=tree)
+        tree,
+        "get_type",
+        partial(
+            get_type, primitive=tree.kotlin_types, optionalize=optionalize, module=tree
+        ),
     )
     setattr(tree, "get_module_name", partial(get_module_name, module=tree))
     setattr(tree, "lookup_fbs_type", lookup_fbs_type)
