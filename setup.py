@@ -11,11 +11,11 @@ with open(join(dirname(__file__), "fbs", "__init__.py"), "r") as f:
 
 install_requires = ["ply>=3.4,<4.0"]
 
-dev_requires = ["flake8>=2.5", "pytest>=2.8"]
+dev_requires = ["flake8>=2.5", "pytest>=2.8", "jinja2>=2.11"]
 
 setup(
     name="flattools",
-    version=version,
+    version="0.5",
     description="Pure python implementation of Flatbuffers.",
     keywords="flatbuffers python thriftpy",
     author="Arun Sharma",

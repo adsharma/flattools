@@ -1,11 +1,54 @@
-# TODO: Duplicate code
-# Figure out how to import from flatc.py
-def get_attrs_dict(attrs):
-    attrs_dict = {x[0]: x[1] for x in attrs if len(x) == 2}
-    ret = {x[0]: None for x in attrs}
-    ret.update(attrs_dict)
-    return ret
+import os
+import unittest
+
+from fbs.parser import load
+from lang.kt.generate import generate_kt
+from lang.py.generate import generate_py
+from lang.rust.generate import generate_rust
+from lang.swift.generate import generate_swift
+from pathlib import Path
 
 
-def test_attrs_dict():
-    assert get_attrs_dict(["a", ["b", 10], "c"]) == {"a": None, "b": 10, "c": None}
+class CodeGeneratorTests(unittest.TestCase):
+    TEST_CASE = "tests/parser-cases/color.fbs"
+    TESTS_DIR = Path(__file__).parent.parent.absolute()
+
+    def setUp(self):
+        os.chdir(self.TESTS_DIR)
+
+    def tearDown(self):
+        os.rmdir("color")
+        pass
+
+    def test_rust(self):
+        generate_rust(self.TEST_CASE, load(self.TEST_CASE))
+        with open("color/color.rs") as f1:
+            os.remove("color/color.rs")
+            with open("tests/expected/golden-color.rs") as f2:
+                self.assertEqual(f2.read(), f1.read())
+
+    def test_kotlin(self):
+        generate_kt(self.TEST_CASE, load(self.TEST_CASE))
+        with open("color/color.kt") as f1:
+            os.remove("color/color.kt")
+            with open("tests/expected/golden-color.kt") as f2:
+                self.assertEqual(f2.read(), f1.read())
+
+    def test_swift(self):
+        generate_swift(self.TEST_CASE, load(self.TEST_CASE))
+        with open("color/color.swift") as f1:
+            os.remove("color/color.swift")
+            with open("tests/expected/golden-color.swift") as f2:
+                self.assertEqual(f2.read(), f1.read())
+
+    def test_py(self):
+        generate_py(self.TEST_CASE, load(self.TEST_CASE))
+        with open("color/color.py") as f1:
+            os.remove("color/color.py")
+            os.remove("color/__init__.py")
+            with open("tests/expected/golden-color.py") as f2:
+                self.assertEqual(f2.read(), f1.read())
+
+
+if __name__ == "__main__":
+    unittest.main()

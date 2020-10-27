@@ -4,23 +4,23 @@ from fbs.parser import load
 
 
 def test_comments():
-    load("parser-cases/comments.fbs")
+    load("tests/parser-cases/comments.fbs")
 
 
 def test_constants():
-    load("parser-cases/constants.fbs")
+    load("tests/parser-cases/constants.fbs")
 
 
 def test_include():
-    load("parser-cases/include.fbs", include_dirs=["./parser-cases"])
+    load("tests/parser-cases/include.fbs", include_dirs=["./parser-cases"])
 
 
 def test_color():
-    load("parser-cases/color.fbs")
+    load("tests/parser-cases/color.fbs")
 
 
 def test_monsters():
-    fbs = load("parser-cases/monster_test.fbs")
+    fbs = load("tests/parser-cases/monster_test.fbs")
     assert fbs.root == "Monster"
     assert fbs.file_extension == "mon"
     assert fbs.file_identifier == "MONS"
@@ -31,4 +31,4 @@ def test_monsters():
 
 
 def test_thrift2fbs():
-    load("parser-cases/thrift2fbs.fbs")
+    load("tests/parser-cases/thrift2fbs.fbs")
