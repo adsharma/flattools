@@ -13,11 +13,15 @@ pub struct NamedAnimal {
 }
 
 #[derive(PartialEq,Clone,Default)]
-pub struct Person {
+pub struct Animal {
     pub name: String,
+    pub length: Option<u64>,
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct Person {
     pub address: Option<String>,
     pub age: Option<i16>,
-    pub length: Option<u64>,
     pub favorite_color: Color,
 }
 

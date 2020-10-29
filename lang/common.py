@@ -1,9 +1,9 @@
 import os
-from typing import Optional, Tuple
 
-from jinja2 import Environment, FileSystemLoader
-
+from collections import OrderedDict
 from fbs.fbs import FBSType
+from jinja2 import Environment, FileSystemLoader
+from typing import List, NewType, Optional, Tuple
 
 GLOBAL_OPTIONS = {"trim_blocks": True, "lstrip_blocks": True}
 
@@ -13,6 +13,8 @@ _NAMESPACE_TO_TYPE = {
     "enums": FBSType.ENUM,
     "unions": FBSType.UNION,
 }
+
+Table = NewType("Table", OrderedDict)
 
 
 def get_type(name, module, primitive, optional=False, optionalize=None):
@@ -59,7 +61,7 @@ def parse_types(fbs_type, py_type) -> Tuple[bool, int, bool, Optional[FBSType], 
 
 def lookup_fbs_type(module, fbs_type) -> Optional[FBSType]:
     """For complex types, check if something is a struct,
-       table, union or an enum"""
+    table, union or an enum"""
     for namespace in _NAMESPACE_TO_TYPE.keys():
         for mod in [module] + module.__fbs_meta__["includes"]:
             for t in mod.__fbs_meta__[namespace]:
@@ -68,10 +70,55 @@ def lookup_fbs_type(module, fbs_type) -> Optional[FBSType]:
     return None
 
 
+def lookup_table(table, module):
+    for t in module.__fbs_meta__["tables"]:
+        if t.__name__ == table:
+            return t
+    return None
+
+
+def get_all_bases(table: Table, module) -> List[str]:
+    table_attrs_length = len(table.attributes)
+    if not table_attrs_length:
+        return []
+    if table_attrs_length == 1 and table.attributes[0][0] == "protocol":
+        return []
+    return [t[0] for t in table.attributes]
+
+
+def get_bases(table: Table, module) -> List[str]:
+    def is_view(module, table_name):
+        t = lookup_table(table_name, module)
+        return t.view if hasattr(t, "view") else False
+
+    return [t for t in get_all_bases(table, module) if not is_view(module, t)]
+
+
+# Custom filters
+def format_list(flist, pattern):
+    return [pattern % s for s in flist]
+
+
 def pre_generate_step(path):
     dirname, filename = os.path.split(os.path.abspath(path))
     env = Environment(
         loader=FileSystemLoader([".", "templates", dirname]), **GLOBAL_OPTIONS
     )
     prefix, extension = os.path.splitext(filename)
+    env.filters["format_list"] = format_list
     return (prefix, env)
+
+
+def pre_process_module(module):
+    for table in module.__fbs_meta__["tables"]:
+        if len(table.attributes) and table.attributes[0][0] == "protocol":
+            table.protocol = True
+        if len(table.attributes) and table.attributes[0][0] == "view":
+            table.view = True
+    # Do this in a second pass, so all tables have protoco/view attributes computed
+    for table in module.__fbs_meta__["tables"]:
+        bases = [lookup_table(b, module) for b in get_all_bases(table, module)]
+        for b in bases:
+            if not b or not hasattr(b, "view") or not b.view:
+                continue
+            table._fspec.update(b._fspec)

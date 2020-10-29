@@ -7,11 +7,13 @@ from typing import List, Tuple
 from fbs.fbs import FBSType
 from lang.common import (
     _NAMESPACE_TO_TYPE,
+    get_bases,
     get_module_name,
     get_type,
     lookup_fbs_type,
     parse_types,
     pre_generate_step,
+    pre_process_module,
 )
 from lang.rust.types import FBSRustType, optionalize
 
@@ -30,6 +32,7 @@ def generate_rust(path, tree, templates=[RUST_TEMPLATE, None, None], separate=Fa
         os.mkdir(prefix)
     table_template, union_template, enum_template = templates
     setattr(tree, "module", tree)
+    pre_process_module(tree)
     # Type related methods
     setattr(tree, "FBSType", FBSType)
     setattr(tree, "rust_types", FBSRustType._VALUES_TO_RUST_TYPES)
@@ -43,6 +46,7 @@ def generate_rust(path, tree, templates=[RUST_TEMPLATE, None, None], separate=Fa
     setattr(tree, "get_module_name", partial(get_module_name, module=tree))
     setattr(tree, "lookup_fbs_type", lookup_fbs_type)
     setattr(tree, "parse_types", parse_types)
+    setattr(tree, "get_bases", partial(get_bases, module=tree))
     # Strings
     setattr(tree, "camel_case", camel_case)
     setattr(tree, "rust_reserved", RUST_KWLIST)

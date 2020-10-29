@@ -10,11 +10,14 @@ interface NamedAnimal {
     val age: Short?
 }
 
-data class Person(
+data class Animal(
     val name: String,
+    val length: ULong?,
+)
+
+data class Person: Animal() (
     val address: String?,
     val age: Short?,
-    val length: ULong?,
     val favorite_color: Color,
 )
 

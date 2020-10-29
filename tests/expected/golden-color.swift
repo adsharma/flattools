@@ -10,11 +10,14 @@ protocol NamedAnimal {
     var age: Int16
 }
 
-struct Person {
+struct Animal {
     var name: String
+    var length: UInt64
+}
+
+struct Person: Animal {
     var address: String
     var age: Int16
-    var length: UInt64
     var favorite_color: Color
 }
 

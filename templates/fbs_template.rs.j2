@@ -12,7 +12,7 @@ enum {{enum_name}} {
 }
 {% endfor %}
 
-{%- for table in __fbs_meta__.tables %}
+{%- for table in __fbs_meta__.tables if not table.view %}
 
 {% set table_name = table.__name__ %}
 #[derive(PartialEq,Clone,Default)]
