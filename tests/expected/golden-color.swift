@@ -5,6 +5,11 @@ enum Color : Int8 {
     Blue = 3
 }
 
+protocol NamedAnimal {
+    var name: String
+    var age: Int16
+}
+
 struct Person {
     var name: String
     var address: String

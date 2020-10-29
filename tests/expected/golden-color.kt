@@ -5,6 +5,11 @@ enum class Color(val x: Byte) {
     Blue(3),
 }
 
+interface NamedAnimal {
+    val name: String
+    val age: Short?
+}
+
 data class Person(
     val name: String,
     val address: String?,

@@ -10,10 +10,12 @@ from ctypes import (
 )
 {% endif %}
 from dataclasses import dataclass
-{% if fbs_enum is defined %}
+from typing import Protocol
+{{imports}}
+{% if __fbs_meta__.enums|length %}
 from enum import Enum
 {% endif %}
-{% if fbs_union is defined %}
+{% if __fbs_meta__.unions|length %}
 from typing import Union
 {% endif %}
 
@@ -30,9 +32,14 @@ class {{enum_name}}(Enum):
 {%- for table in __fbs_meta__.tables %}
 
 
-@dataclass
+{% set protocol = (table.attributes[0]|length and table.attributes[0][0] == 'protocol') %}
 {% set table_name = table.__name__ %}
+{% if protocol %}
+class {{table_name}}(Protocol):
+{% else %}
+@dataclass
 class {{table_name}}:
+{% endif %}
 {% for member, type in table['_fspec'].items() %}
 {% set py_type = get_type(type[1]) %}
     {{member}}: {{py_type}}

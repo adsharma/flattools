@@ -13,15 +13,25 @@ enum class {{enum_name}}(val x: {{enum_type}}) {
 
 {%- for table in __fbs_meta__.tables %}
 
+{% set protocol = (table.attributes[0]|length and table.attributes[0][0] == 'protocol') %}
 {% set table_name = table.__name__ %}
+{% if protocol %}
+interface {{table_name}} {
+{% for member, type in table['_fspec'].items() %}
+{% set optional = 'required' not in type[2][0] %}
+{% set kt_type = get_type(type[1], optional=optional) %}
+    val {{member}}: {{kt_type}}
+{% endfor %}
+}
+{% else %}
 data class {{table_name}}(
 {% for member, type in table['_fspec'].items() %}
-{% set key = 'key' in type[2] %}
 {% set optional = 'required' not in type[2][0] %}
 {% set kt_type = get_type(type[1], optional=optional) %}
     val {{member}}: {{kt_type}},
 {% endfor %}
 )
+{% endif %}
 {% endfor %}
 
 {%- for fbs_union in __fbs_meta__.unions %}

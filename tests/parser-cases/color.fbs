@@ -1,16 +1,21 @@
 enum Color : byte { Red = 1, Green, Blue }
 
+table NamedAnimal (protocol) {
+    name : string (required);
+    age : short;
+}
+
 table Person {
-       name : string (required);
-       address : string;
-       age : short;
-       length: ulong;
-       favorite_color: Color;
+    name : string (required);
+    address : string;
+    age : short;
+    length: ulong;
+    favorite_color: Color;
 }
 
 table Product {
-       label: string;
-       price: int;
+    label: string;
+    price: int;
 }
 
 union Item {

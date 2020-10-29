@@ -7,6 +7,12 @@ enum Color {
 }
 
 #[derive(PartialEq,Clone,Default)]
+pub struct NamedAnimal {
+    pub name: String,
+    pub age: Option<i16>,
+}
+
+#[derive(PartialEq,Clone,Default)]
 pub struct Person {
     pub name: String,
     pub address: Option<String>,
