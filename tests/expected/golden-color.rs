@@ -25,6 +25,15 @@ pub struct Person {
     pub favorite_color: Color,
 }
 
+impl Default for Person {
+    fn default() -> Person {
+        Person {
+           age: Some(18),
+          ..Default::default()
+        }
+    }
+}
+
 #[derive(PartialEq,Clone)]
 pub struct Product {
     pub label: Option<String>,

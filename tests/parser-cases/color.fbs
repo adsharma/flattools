@@ -19,7 +19,7 @@ table Animal {
 // languages do so, it's ok to add the protocol here
 table Person (Animal, Colorophile) {
     address : string;
-    age : short;
+    age : short = 18;
 }
 
 table Product {

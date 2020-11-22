@@ -122,3 +122,15 @@ def pre_process_module(module):
             if not b or not hasattr(b, "view") or not b.view:
                 continue
             table._fspec.update(b._fspec)
+            table.default_spec += b.default_spec
+
+        # Handle default values
+        table.has_default = False
+        table.default_dict = {}
+        for k, v in table.default_spec:
+            if v != None:
+                table.default_dict[k] = v
+        for member, value in table.default_spec:
+            if value != None:
+                table.has_default = True
+                break

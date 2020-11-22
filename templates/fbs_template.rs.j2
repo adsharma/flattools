@@ -23,6 +23,24 @@ pub struct {{table_name}} {
     pub {{member}}: {{rust_type}},
 {% endfor %}
 }
+
+{%- if table.has_default %}
+
+
+impl Default for {{table_name}} {
+    fn default() -> {{table_name}} {
+        {{table_name}} {
+{% for member, val in table.default_dict.items() %}
+{% set optional = 'required' not in table._fspec[member][2][0] %}
+{% set val = 'Some(' ~ val ~ ')' if optional else val %}
+           {{member}}: {{val}},
+{% endfor %}
+          ..Default::default()
+        }
+    }
+}
+{%- endif %}
+
 {% endfor %}
 
 {%- for fbs_union in __fbs_meta__.unions %}
