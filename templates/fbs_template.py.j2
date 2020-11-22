@@ -29,16 +29,17 @@ class {{enum_name}}(Enum):
 {% endfor %}
 {% endfor %}
 
-{%- for table in __fbs_meta__.tables %}
-
+{%- for table in __fbs_meta__.tables if not table.view %}
 
 {% set protocol = (table.attributes[0]|length and table.attributes[0][0] == 'protocol') %}
+{% set bases = get_bases(table) %}
+{% set bases = "(" ~ ", ".join(bases) ~ ")" if bases else "" %}
 {% set table_name = table.__name__ %}
 {% if protocol %}
 class {{table_name}}(Protocol):
 {% else %}
 @dataclass
-class {{table_name}}:
+class {{table_name}}{{bases}}:
 {% endif %}
 {% for member, type in table['_fspec'].items() %}
 {% set py_type = get_type(type[1]) %}

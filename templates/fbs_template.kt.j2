@@ -11,9 +11,11 @@ enum class {{enum_name}}(val x: {{enum_type}}) {
 }
 {% endfor %}
 
-{%- for table in __fbs_meta__.tables %}
+{%- for table in __fbs_meta__.tables if not table.view %}
 
 {% set protocol = (table.attributes[0]|length and table.attributes[0][0] == 'protocol') %}
+{% set bases = get_bases(table) | format_list("%s()") %}
+{% set bases = ": " ~ ", ".join(bases) ~ " " if bases else "" %}
 {% set table_name = table.__name__ %}
 {% if protocol %}
 interface {{table_name}} {
@@ -24,7 +26,7 @@ interface {{table_name}} {
 {% endfor %}
 }
 {% else %}
-data class {{table_name}}(
+data class {{table_name}}{{bases}}(
 {% for member, type in table['_fspec'].items() %}
 {% set optional = 'required' not in type[2][0] %}
 {% set kt_type = get_type(type[1], optional=optional) %}
@@ -43,4 +45,3 @@ sealed class {{union_name}} {
 {% endfor %}
 }
 {% endfor %}
-

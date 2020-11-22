@@ -7,32 +7,32 @@ from typing import List, Tuple
 from fbs.fbs import FBSType
 from lang.common import (
     _NAMESPACE_TO_TYPE,
+    get_bases,
     get_module_name,
     get_type,
     lookup_fbs_type,
     parse_types,
     pre_generate_step,
+    pre_process_module,
 )
 from lang.swift.types import FBSSwiftType
 
 SWIFT_TEMPLATE = "fbs_template.swift.j2"
 
-SWIFT_KWLIST = {
-}
+SWIFT_KWLIST = {}
 
 
 def camel_case(text: str) -> str:
     return "".join([x.title() for x in text.split("_")])
 
 
-def generate_swift(
-    path, tree, templates=[SWIFT_TEMPLATE, None, None], separate=False
-):
+def generate_swift(path, tree, templates=[SWIFT_TEMPLATE, None, None], separate=False):
     (prefix, env) = pre_generate_step(path)
     if not os.path.exists(prefix):
         os.mkdir(prefix)
     table_template, union_template, enum_template = templates
     setattr(tree, "module", tree)
+    pre_process_module(tree)
     # Type related methods
     setattr(tree, "FBSType", FBSType)
     setattr(tree, "swift_types", FBSSwiftType._VALUES_TO_SWIFT_TYPES)
@@ -42,6 +42,7 @@ def generate_swift(
     setattr(tree, "get_module_name", partial(get_module_name, module=tree))
     setattr(tree, "lookup_fbs_type", lookup_fbs_type)
     setattr(tree, "parse_types", parse_types)
+    setattr(tree, "get_bases", partial(get_bases, module=tree))
     # Strings
     setattr(tree, "camel_case", camel_case)
     setattr(tree, "swift_reserved", SWIFT_KWLIST)

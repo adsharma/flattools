@@ -7,11 +7,13 @@ from typing import List, Optional, Tuple
 from fbs.fbs import FBSType
 from lang.common import (
     _NAMESPACE_TO_TYPE,
+    get_bases,
     get_module_name,
     get_type,
     lookup_fbs_type,
     parse_types,
     pre_generate_step,
+    pre_process_module,
 )
 from lang.py.types import FBSPyType
 
@@ -94,7 +96,10 @@ def camel_case(text: str) -> str:
 
 
 def generate_py(
-    path, tree, templates=[PYTHON_TEMPLATE, None, None], separate=False,
+    path,
+    tree,
+    templates=[PYTHON_TEMPLATE, None, None],
+    separate=False,
 ):
     (prefix, env) = pre_generate_step(path)
     if not os.path.exists(prefix):
@@ -102,6 +107,7 @@ def generate_py(
         open(os.path.join(prefix, "__init__.py"), "a").close()
     table_template, union_template, enum_template = templates
     setattr(tree, "module", tree)
+    pre_process_module(tree)
     # Type related methods
     setattr(tree, "FBSType", FBSType)
     setattr(tree, "python_types", FBSPyType._VALUES_TO_PY_TYPES)
@@ -109,6 +115,7 @@ def generate_py(
         tree, "get_type", partial(get_type, primitive=tree.python_types, module=tree)
     )
     setattr(tree, "get_module_name", partial(get_module_name, module=tree))
+    setattr(tree, "get_bases", partial(get_bases, module=tree))
     setattr(tree, "lookup_fbs_type", lookup_fbs_type)
     setattr(tree, "parse_types", parse_types)
     setattr(tree, "c_int_types", partial(c_int_types, module=tree))

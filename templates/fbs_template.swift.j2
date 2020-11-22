@@ -18,14 +18,16 @@ enum {{enum_name}} : {{enum_type}} {
 }
 {% endfor %}
 
-{%- for table in __fbs_meta__.tables %}
+{%- for table in __fbs_meta__.tables if not table.view %}
 
 {% set protocol = (table.attributes[0]|length and table.attributes[0][0] == 'protocol') %}
 {% set table_name = table.__name__ %}
+{% set bases = get_bases(table) %}
+{% set bases = ": " ~ ", ".join(bases) if bases else "" %}
 {% if protocol %}
 protocol {{table_name}} {
 {% else %}
-struct {{table_name}} {
+struct {{table_name}}{{bases}} {
 {% endif %}
 {% for member, type in table['_fspec'].items() %}
 {% set optional = 'required' not in type[2][0] %}
@@ -44,4 +46,3 @@ enum {{union_name}} {
 {% endfor %}
 }
 {% endfor %}
-

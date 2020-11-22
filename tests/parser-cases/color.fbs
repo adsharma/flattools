@@ -5,12 +5,21 @@ table NamedAnimal (protocol) {
     age : short;
 }
 
-table Person {
+table Colorophile (view) {
+    favorite_color: Color;
+}
+
+table Animal {
     name : string (required);
+    length: ulong;
+}
+
+// Some languages prefer protocols like NamedAnimal
+// as a subclass syntactically. When all supported
+// languages do so, it's ok to add the protocol here
+table Person (Animal, Colorophile) {
     address : string;
     age : short;
-    length: ulong;
-    favorite_color: Color;
 }
 
 table Product {
