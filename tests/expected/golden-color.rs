@@ -6,26 +6,26 @@ enum Color {
     Blue = 3,
 }
 
-#[derive(PartialEq,Clone,Default)]
+#[derive(PartialEq,Clone)]
 pub struct NamedAnimal {
     pub name: String,
     pub age: Option<i16>,
 }
 
-#[derive(PartialEq,Clone,Default)]
+#[derive(PartialEq,Clone)]
 pub struct Animal {
     pub name: String,
     pub length: Option<u64>,
 }
 
-#[derive(PartialEq,Clone,Default)]
+#[derive(PartialEq,Clone)]
 pub struct Person {
     pub address: Option<String>,
     pub age: Option<i16>,
     pub favorite_color: Color,
 }
 
-#[derive(PartialEq,Clone,Default)]
+#[derive(PartialEq,Clone)]
 pub struct Product {
     pub label: Option<String>,
     pub price: Option<i32>,

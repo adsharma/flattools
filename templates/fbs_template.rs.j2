@@ -15,7 +15,7 @@ enum {{enum_name}} {
 {%- for table in __fbs_meta__.tables if not table.view %}
 
 {% set table_name = table.__name__ %}
-#[derive(PartialEq,Clone,Default)]
+#[derive(PartialEq,Clone)]
 pub struct {{table_name}} {
 {% for member, type in table['_fspec'].items() %}
 {% set optional = 'required' not in type[2][0] %}
