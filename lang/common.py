@@ -109,7 +109,7 @@ def pre_generate_step(path):
     return (prefix, env)
 
 
-def pre_process_module(module):
+def pre_process_module(module, reserved=None):
     for table in module.__fbs_meta__["tables"]:
         if len(table.attributes) and table.attributes[0][0] == "protocol":
             table.protocol = True
@@ -134,3 +134,15 @@ def pre_process_module(module):
             if value != None:
                 table.has_default = True
                 break
+
+    # Rename any reserved field names
+    if reserved is None:
+        return
+
+    for table in module.__fbs_meta__["tables"]:
+        for k in set(table._fspec.keys()) & set(reserved):
+            table._fspec[f"_{k}"] = table._fspec.pop(k)
+        for i, kv in enumerate(table.default_spec):
+            k, v = kv
+            if k in reserved:
+                table.default_spec[i] = (f"_{k}", v)

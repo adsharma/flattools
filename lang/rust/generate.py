@@ -32,7 +32,7 @@ def generate_rust(path, tree, templates=[RUST_TEMPLATE, None, None], separate=Fa
         os.mkdir(prefix)
     table_template, union_template, enum_template = templates
     setattr(tree, "module", tree)
-    pre_process_module(tree)
+    pre_process_module(tree, RUST_KWLIST)
     # Type related methods
     setattr(tree, "FBSType", FBSType)
     setattr(tree, "rust_types", FBSRustType._VALUES_TO_RUST_TYPES)

@@ -107,7 +107,7 @@ def generate_py(
         open(os.path.join(prefix, "__init__.py"), "a").close()
     table_template, union_template, enum_template = templates
     setattr(tree, "module", tree)
-    pre_process_module(tree)
+    pre_process_module(tree, kwlist)
     # Type related methods
     setattr(tree, "FBSType", FBSType)
     setattr(tree, "python_types", FBSPyType._VALUES_TO_PY_TYPES)
