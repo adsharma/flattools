@@ -43,7 +43,10 @@ class {{table_name}}{{bases}}:
 {% endif %}
 {% for member, type in table['_fspec'].items() %}
 {% set py_type = get_type(type[1]) %}
-    {{member}}: {{py_type}}
+{% set quoted_py_type = "\"" ~ py_type ~ "\"" if py_type not in python_types.values() else py_type %}
+    {{member}}: {{quoted_py_type}}
+{% else %}
+    pass
 {% endfor %}
 {% endfor %}
 
