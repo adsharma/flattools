@@ -26,13 +26,13 @@ interface {{table_name}} {
 {% endfor %}
 }
 {% else %}
-data class {{table_name}}{{bases}}(
+data class {{table_name}}(
 {% for member, type in table['_fspec'].items() %}
 {% set optional = 'required' not in type[2][0] %}
 {% set kt_type = get_type(type[1], optional=optional) %}
     val {{member}}: {{kt_type}},
 {% endfor %}
-)
+){{bases}}
 {% endif %}
 {% endfor %}
 
