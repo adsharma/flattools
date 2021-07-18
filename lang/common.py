@@ -1,8 +1,7 @@
-import os
-
 from collections import OrderedDict
 from fbs.fbs import FBSType
 from jinja2 import Environment, FileSystemLoader
+from pathlib import Path
 from typing import List, NewType, Optional, Tuple
 
 GLOBAL_OPTIONS = {"trim_blocks": True, "lstrip_blocks": True}
@@ -100,11 +99,12 @@ def format_list(flist, pattern):
 
 
 def pre_generate_step(path):
-    dirname, filename = os.path.split(os.path.abspath(path))
+    path = Path(path)
+    py_path = Path(__file__)
     env = Environment(
-        loader=FileSystemLoader([".", "templates", dirname]), **GLOBAL_OPTIONS
+        loader=FileSystemLoader([".", "templates", py_path.parent.parent / "templates"]), **GLOBAL_OPTIONS
     )
-    prefix, extension = os.path.splitext(filename)
+    prefix, extension = path.stem, path.suffix
     env.filters["format_list"] = format_list
     return (prefix, env)
 
