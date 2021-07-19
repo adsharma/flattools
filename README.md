@@ -16,10 +16,16 @@ is a useful technique, but [somewhat controversial](https://adsharma.github.io/f
 
 ## Usage
 
+Installing
+
+``` {.sourceCode .bash}
+pip3 install flattools
+```
+
 Running
 
 ``` {.sourceCode .bash}
-$ flatc.py tests/parser-cases/color.fbs --kotlin=1
+$ ~/.local/bin/flatc tests/parser-cases/color.fbs --kotlin=1
 ```
 
 Generates something like
