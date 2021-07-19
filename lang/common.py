@@ -16,7 +16,7 @@ _NAMESPACE_TO_TYPE = {
 Table = NewType("Table", OrderedDict)
 
 
-def get_type(name, module, primitive, optional=False, optionalize=None):
+def get_type(name, module, primitive, optional=False, optionalize=None, listify=None):
     try:
         base = primitive[name]
         if optional and optionalize:
@@ -31,7 +31,12 @@ def get_type(name, module, primitive, optional=False, optionalize=None):
             element_type = get_type(
                 name[1:-1], module, module.FBSType._LOWER_NAMES_TO_VALUES
             )
-            return "[{}]".format(get_type(element_type, module, primitive))
+            target_type = get_type(element_type, module, primitive)
+            if listify:
+                target_type = listify(target_type)
+            else:
+                target_type = f"[{target_type}]"
+            return target_type
         return name
 
 

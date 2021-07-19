@@ -15,7 +15,7 @@ from lang.common import (
     pre_generate_step,
     pre_process_module,
 )
-from lang.py.types import FBSPyType
+from lang.py.types import FBSPyType, listify, optionalize
 
 PYTHON_TEMPLATE = "fbs_template.py.j2"
 
@@ -112,7 +112,7 @@ def generate_py(
     setattr(tree, "FBSType", FBSType)
     setattr(tree, "python_types", FBSPyType._VALUES_TO_PY_TYPES)
     setattr(
-        tree, "get_type", partial(get_type, primitive=tree.python_types, module=tree)
+        tree, "get_type", partial(get_type, primitive=tree.python_types, optionalize=optionalize, listify=listify, module=tree)
     )
     setattr(tree, "get_module_name", partial(get_module_name, module=tree))
     setattr(tree, "get_bases", partial(get_bases, module=tree))
