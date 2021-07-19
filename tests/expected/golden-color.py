@@ -30,7 +30,7 @@ class Animal:
 class Person(Animal):
     address: str
     age: int16
-    favorite_color: Color
+    favorite_color: "Color"
 
 @dataclass
 class Product:

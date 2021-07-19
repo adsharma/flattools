@@ -14,6 +14,7 @@ class CodeGeneratorTests(unittest.TestCase):
     TESTS_DIR = Path(__file__).parent.parent.absolute()
 
     def setUp(self):
+        self.maxDiff = None
         os.chdir(self.TESTS_DIR)
 
     def tearDown(self):

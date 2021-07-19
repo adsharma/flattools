@@ -15,11 +15,11 @@ data class Animal(
     val length: ULong?,
 )
 
-data class Person: Animal() (
+data class Person(
     val address: String?,
     val age: Short?,
     val favorite_color: Color,
-)
+): Animal()
 
 data class Product(
     val label: String?,
