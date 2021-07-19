@@ -15,7 +15,7 @@ dev_requires = ["flake8>=2.5", "pytest>=2.8", "jinja2>=2.11"]
 
 setup(
     name="flattools",
-    version="0.5",
+    version="0.6",
     description="Pure Python Flatbuffer Schema Compiler",
     keywords="flatbuffers python thriftpy",
     author="Arun Sharma",
@@ -28,6 +28,7 @@ setup(
     license="MIT",
     zip_safe=False,
     long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
     install_requires=install_requires,
     extras_require={"dev": dev_requires},
     classifiers=[
