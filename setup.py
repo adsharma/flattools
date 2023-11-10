@@ -23,7 +23,7 @@ setup(
     packages=find_packages(exclude=["docs", "tests"]),
     package_data={"templates": ["*.j2"]},
     include_package_data=True,
-    entry_points={"console_scripts": ["flatc=bin.flatc:main"]},
+    entry_points={"console_scripts": ["flattc=bin.flatc:main"]},
     url="https://github.com/adsharma/flattools",
     license="MIT",
     zip_safe=False,
