@@ -19,13 +19,13 @@ is a useful technique, but [somewhat controversial](https://adsharma.github.io/f
 Installing
 
 ``` {.sourceCode .bash}
-pip3 install flattools
+uv sync --extra dev
 ```
 
 Running
 
 ``` {.sourceCode .bash}
-$ ~/.local/bin/flatc tests/parser-cases/color.fbs --kotlin=1
+uv run flatc.py tests/parser-cases/color.fbs --kotlin=1
 ```
 
 Generates something like
@@ -65,7 +65,7 @@ Supported languages: python, rust, kotlin, swift
 
 Pull requests are welcome for other languages. The idea is to start
 from one of the existing languages [here](https://github.com/adsharma/flattools/tree/master/lang)
-and creating a [new template](https://github.com/adsharma/flattools/tree/master/templates) for
+and creating a [new template](https://github.com/adsharma/flattools/tree/master/flattools/templates) for
 your language of choice.
 
 There are existing tests, so all you need to do is generate [golden/expected](https://github.com/adsharma/flattools/tree/master/tests/expected)
