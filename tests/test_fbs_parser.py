@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from fbs.parser import load
+from flattools.fbs.parser import load
 
 
 def test_comments():

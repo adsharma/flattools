@@ -4,7 +4,7 @@ from functools import partial
 from keyword import kwlist
 from typing import List, Optional, Tuple
 
-from fbs.fbs import FBSType
+from flattools.fbs.fbs import FBSType
 from lang.common import (
     _NAMESPACE_TO_TYPE,
     get_bases,
