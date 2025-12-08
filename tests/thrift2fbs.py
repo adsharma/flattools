@@ -3,7 +3,7 @@
 # -*- coding: utf-8 -*-
 import argparse
 
-from fbs.fbs import FBSType
+from flattools.fbs.fbs import FBSType
 from thriftpy.parser import load
 from thriftpy.parser.exc import ThriftParserError
 from thriftpy.thrift import TType

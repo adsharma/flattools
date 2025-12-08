@@ -1,4 +1,4 @@
-from fbs.fbs import FBSType
+from flattools.fbs.fbs import FBSType
 
 
 class FBSRustType(FBSType):

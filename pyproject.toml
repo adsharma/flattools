@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flattools"
+version = "0.6"
+description = "Pure Python Flatbuffer Schema Compiler"
+keywords = ["flatbuffers", "python", "thriftpy"]
+authors = [
+    {name = "Arun Sharma", email = "asharma@fb.com"},
+]
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.6"
+classifiers = [
+    "Topic :: Software Development",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+    "ply>=3.4,<4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "flake8>=2.5",
+    "pytest>=2.8",
+    "jinja2>=2.11",
+]
+
+[project.urls]
+Homepage = "https://github.com/adsharma/flattools"
+
+[project.scripts]
+flatc = "flattools.bin.flatc:main"
+
+[tool.setuptools.packages.find]
+exclude = ["docs", "tests"]
+
+[tool.setuptools]
+include-package-data = true

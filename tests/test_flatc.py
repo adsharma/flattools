@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from fbs.parser import load
+from flattools.fbs.parser import load
 from lang.kt.generate import generate_kt
 from lang.py.generate import generate_py
 from lang.rust.generate import generate_rust

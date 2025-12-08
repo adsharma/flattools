@@ -1,4 +1,4 @@
-from fbs._compat import with_metaclass
+from ._compat import with_metaclass
 
 
 def build_named_set(primitives, names):

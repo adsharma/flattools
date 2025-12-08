@@ -13,8 +13,8 @@ import types
 
 from ply import lex, yacc
 
-from fbs._compat import urlopen, urlparse
-from fbs.fbs import FBSPayload, FBSType, gen_init
+from .._compat import urlopen, urlparse
+from ..fbs import FBSPayload, FBSType, gen_init
 
 from .exc import FbsGrammerError, FbsParserError
 from .lexer import *  # noqa
@@ -362,7 +362,7 @@ def parse(
         lexer = lex.lex()
     if parser is None:
         parser = yacc.yacc(
-            optimize=1, write_tables=False, debug=False, tabmodule="fbs.parser.parsetab"
+            optimize=1, write_tables=False, debug=False, tabmodule="flattools.fbs.parser.parsetab"
         )
 
     global include_dirs_
@@ -444,7 +444,7 @@ def parse_fp(
         lexer = lex.lex()
     if parser is None:
         parser = yacc.yacc(
-            optimize=1, write_tables=False, debug=False, tabmodule="fbs.parser.parsetab"
+            optimize=1, write_tables=False, debug=False, tabmodule="flattools.fbs.parser.parsetab"
         )
 
     data = source.read()

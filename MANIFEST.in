@@ -1,3 +1,3 @@
 include README.md
-graft templates
-recursive-include templates *
+graft flattools/templates
+recursive-include flattools/templates *
