@@ -107,7 +107,7 @@ def pre_generate_step(path):
     path = Path(path)
     py_path = Path(__file__)
     env = Environment(
-        loader=FileSystemLoader([".", py_path.parent.parent / "flattools" / "templates"]), **GLOBAL_OPTIONS
+        loader=FileSystemLoader([".", py_path.parent.parent / "templates"]), **GLOBAL_OPTIONS
     )
     prefix, extension = path.stem, path.suffix
     env.filters["format_list"] = format_list

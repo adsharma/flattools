@@ -2,10 +2,10 @@ import os
 import unittest
 
 from flattools.fbs.parser import load
-from lang.kt.generate import generate_kt
-from lang.py.generate import generate_py
-from lang.rust.generate import generate_rust
-from lang.swift.generate import generate_swift
+from flattools.lang.kt.generate import generate_kt
+from flattools.lang.py.generate import generate_py
+from flattools.lang.rust.generate import generate_rust
+from flattools.lang.swift.generate import generate_swift
 from pathlib import Path
 
 

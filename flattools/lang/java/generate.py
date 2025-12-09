@@ -1,8 +1,8 @@
 from functools import partial
 
 from flattools.fbs.fbs import FBSType
-from lang.common import get_type, pre_generate_step
-from lang.java.types import FBSJavaType
+from flattools.lang.common import get_type, pre_generate_step
+from flattools.lang.java.types import FBSJavaType
 
 IJAVA_TEMPLATE = "fbs_template_interface.java.j2"
 

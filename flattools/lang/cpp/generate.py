@@ -1,8 +1,8 @@
 from functools import partial
 
 from flattools.fbs.fbs import FBSType
-from lang.common import get_type, pre_generate_step
-from lang.cpp.types import FBSCppType
+from flattools.lang.common import get_type, pre_generate_step
+from flattools.lang.cpp.types import FBSCppType
 
 CPP_TEMPLATE = "fbs_template_cpp.h.j2"
 

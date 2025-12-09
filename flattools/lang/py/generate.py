@@ -5,7 +5,7 @@ from keyword import kwlist
 from typing import List, Optional, Tuple
 
 from flattools.fbs.fbs import FBSType
-from lang.common import (
+from flattools.lang.common import (
     _NAMESPACE_TO_TYPE,
     get_bases,
     get_module_name,
@@ -15,7 +15,7 @@ from lang.common import (
     pre_generate_step,
     pre_process_module,
 )
-from lang.py.types import FBSPyType, listify, optionalize
+from flattools.lang.py.types import FBSPyType, listify, optionalize
 
 PYTHON_TEMPLATE = "fbs_template.py.j2"
 
