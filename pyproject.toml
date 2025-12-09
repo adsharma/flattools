@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flattools"
-version = "0.6"
+version = "0.6.2"
 description = "Pure Python Flatbuffer Schema Compiler"
 keywords = ["flatbuffers", "python", "thriftpy"]
 authors = [
